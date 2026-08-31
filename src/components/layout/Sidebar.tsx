@@ -5,7 +5,6 @@ import { BrandLogo } from "@/components/layout/BrandLogo";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
-import { BRAND_CONFIG } from "@/lib/config/brand";
 import { cn } from "@/lib/utils/cn";
 import {
   Menu,
@@ -18,10 +17,20 @@ import {
   FolderPlus,
   LogIn,
   LogOut,
+  MessageSquare,
+  Pin,
+  Trash2,
 } from "lucide-react";
 
 export function Sidebar() {
-  const { setActiveConversation } = useChatStore();
+  const {
+    conversations,
+    activeConversationId,
+    setActiveConversation,
+    togglePinConversation,
+    deleteConversation,
+  } = useChatStore();
+
   const { isSidebarCollapsed, toggleSidebar, setSearchModalOpen, activeTab, setActiveTab } =
     useUIStore();
   const { user, isAuthenticated, openAuthModal, logout } = useAuthStore();
@@ -34,6 +43,11 @@ export function Sidebar() {
   const handleNewChat = () => {
     setActiveTab("chat");
     setActiveConversation(null);
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setActiveTab("chat");
+    setActiveConversation(id);
   };
 
   const navItems = [
@@ -82,6 +96,10 @@ export function Sidebar() {
 
   const isUserAuthenticated = mounted ? isAuthenticated : false;
   const currentUser = mounted ? user : null;
+  const currentConversations = mounted ? conversations : [];
+
+  const pinnedConversations = currentConversations.filter((c) => c.pinned);
+  const recentConversations = currentConversations.filter((c) => !c.pinned);
 
   return (
     <aside
@@ -110,7 +128,7 @@ export function Sidebar() {
       </div>
 
       {/* Primary Action: Full-width New Chat Button */}
-      <div className="px-3 pt-1 pb-3 shrink-0">
+      <div className="px-3 pt-1 pb-2 shrink-0">
         <button
           onClick={handleNewChat}
           className={cn(
@@ -125,15 +143,16 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Main Navigation List */}
-      <div className="flex-1 overflow-y-auto px-2 space-y-0.5 scrollbar-none">
+      {/* Middle Scrollable Section: Navigation + Recent Chat History */}
+      <div className="flex-1 overflow-y-auto px-2 space-y-3 scrollbar-none py-1">
+        {/* Main Navigation List */}
         <nav aria-label="เมนูหลัก" className="space-y-0.5">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={item.onClick}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-normal transition-colors cursor-pointer text-left",
+                "w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-[13px] font-normal transition-colors cursor-pointer text-left",
                 item.active
                   ? "bg-[#282a2c] text-white font-medium shadow-2xs"
                   : "text-slate-300 hover:bg-[#282a2c] hover:text-white"
@@ -145,6 +164,140 @@ export function Sidebar() {
             </button>
           ))}
         </nav>
+
+        {/* Pinned Chats Section (if any) */}
+        {pinnedConversations.length > 0 && (
+          <div className="space-y-1 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+            {!isSidebarCollapsed && (
+              <div className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Pin className="h-3 w-3 text-amber-400 fill-amber-400/20" />
+                <span>ปักหมุดไว้</span>
+              </div>
+            )}
+            <div className="space-y-0.5">
+              {pinnedConversations.map((c) => {
+                const isActive = activeTab === "chat" && activeConversationId === c.id;
+                return (
+                  <div
+                    key={c.id}
+                    className={cn(
+                      "group flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[12.5px] transition-colors cursor-pointer",
+                      isActive
+                        ? "bg-[#0b57d0]/20 border border-[#0b57d0]/40 text-white font-medium"
+                        : "text-slate-300 hover:bg-[#282a2c] hover:text-white"
+                    )}
+                    onClick={() => handleSelectConversation(c.id)}
+                    title={c.title}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <Pin className="h-3.5 w-3.5 text-amber-400 shrink-0 fill-amber-400/20" />
+                      {!isSidebarCollapsed && (
+                        <span className="truncate">{c.title}</span>
+                      )}
+                    </div>
+
+                    {!isSidebarCollapsed && (
+                      <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 ml-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePinConversation(c.id);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+                          title="ยกเลิกปักหมุด"
+                        >
+                          <Pin className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteConversation(c.id);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-colors"
+                          title="ลบแชท"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Chat History Section */}
+        <div className="space-y-1 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+          {!isSidebarCollapsed && (
+            <div className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>แชทล่าสุด ({recentConversations.length})</span>
+            </div>
+          )}
+
+          <div className="space-y-0.5">
+            {recentConversations.length === 0 ? (
+              !isSidebarCollapsed && (
+                <div className="px-3 py-2 text-[11.5px] text-slate-500 italic">
+                  ยังไม่มีประวัติแชทในเครื่อง
+                </div>
+              )
+            ) : (
+              recentConversations.map((c) => {
+                const isActive = activeTab === "chat" && activeConversationId === c.id;
+                return (
+                  <div
+                    key={c.id}
+                    className={cn(
+                      "group flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[12.5px] transition-colors cursor-pointer",
+                      isActive
+                        ? "bg-[#0b57d0]/20 border border-[#0b57d0]/40 text-white font-medium"
+                        : "text-slate-300 hover:bg-[#282a2c] hover:text-white"
+                    )}
+                    onClick={() => handleSelectConversation(c.id)}
+                    title={c.title}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <MessageSquare className="h-3.5 w-3.5 text-slate-400 shrink-0 group-hover:text-blue-400 transition-colors" />
+                      {!isSidebarCollapsed && (
+                        <span className="truncate">{c.title}</span>
+                      )}
+                    </div>
+
+                    {!isSidebarCollapsed && (
+                      <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 ml-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePinConversation(c.id);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-amber-400 hover:bg-slate-700/50 transition-colors"
+                          title="ปักหมุดแชท"
+                        >
+                          <Pin className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteConversation(c.id);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-colors"
+                          title="ลบแชท"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Bottom Auth & User Profile Section */}
