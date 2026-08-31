@@ -4,12 +4,10 @@ import React, { useState } from "react";
 import { useSettingsStore } from "@/lib/store/useSettingsStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
-import { AVAILABLE_MODELS } from "@/lib/config/models";
 import { BRAND_CONFIG } from "@/lib/config/brand";
 import { Button } from "@/components/ui/Button";
 import {
   Settings,
-  Cpu,
   Keyboard,
   Shield,
   Trash2,
@@ -30,7 +28,6 @@ import { cn } from "@/lib/utils/cn";
 
 type SettingsTab =
   | "general"
-  | "models"
   | "composer"
   | "shortcuts"
   | "privacy"
@@ -75,7 +72,6 @@ export function SettingsView() {
 
   const navTabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: "general", label: "ทั่วไป (General)", icon: <Settings className="h-4 w-4" /> },
-    { id: "models", label: "โมเดล AI (AI Models)", icon: <Cpu className="h-4 w-4" /> },
     { id: "composer", label: "กล่องข้อความ (Composer)", icon: <Settings className="h-4 w-4" /> },
     { id: "shortcuts", label: "คีย์ลัด (Shortcuts)", icon: <Keyboard className="h-4 w-4" /> },
     { id: "privacy", label: "ความเป็นส่วนตัว & ข้อมูล", icon: <Shield className="h-4 w-4" /> },
@@ -86,7 +82,7 @@ export function SettingsView() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full">
       {/* Header */}
-      <div className="flex items-center justify-between pb-6 border-b border-[hsl(var(--border))]">
+      <div className="flex items-center justify-between pb-6 border-b border-[rgba(255,255,255,0.08)]">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
             <Settings className="h-5 w-5" />
@@ -96,7 +92,7 @@ export function SettingsView() {
               การตั้งค่า (Settings & Preferences)
             </h2>
             <p className="text-xs sm:text-sm text-[#94a3b8]">
-              ปรับแต่งพฤติกรรมของ AI ข้อมูลระบบ และโปรไฟล์ผู้พัฒนา
+              ปรับแต่งพฤติกรรมของระบบ ข้อมูลบัญชีผู้ใช้ และโปรไฟล์ผู้พัฒนา
             </p>
           </div>
         </div>
@@ -319,60 +315,6 @@ export function SettingsView() {
             </div>
           )}
 
-          {/* AI Models Tab */}
-          {activeTab === "models" && (
-            <div className="space-y-4">
-              <h3 className="text-base font-bold text-[#f1f5f9] border-b border-[rgba(255,255,255,0.08)] pb-2">
-                โมเดล AI เริ่มต้นและคำสั่งระบบ (Default Model & Prompt)
-              </h3>
-
-              <div>
-                <label className="block font-semibold text-[#f1f5f9] mb-1.5">
-                  โมเดล AI เริ่มต้น (Default Model)
-                </label>
-                <select
-                  value={settings.defaultModelId}
-                  onChange={(e) => updateSettings({ defaultModelId: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#131314] border border-[rgba(255,255,255,0.08)] text-[#f1f5f9] outline-none"
-                >
-                  {AVAILABLE_MODELS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.provider})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <div className="flex justify-between font-semibold text-[#f1f5f9] mb-1">
-                  <label>Temperature เริ่มต้น</label>
-                  <span className="font-mono">{settings.temperature}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={settings.temperature}
-                  onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
-                  className="w-full h-2 bg-[#131314] rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-[#f1f5f9] mb-1.5">
-                  คำสั่งระบบกลาง (Global System Prompt Preset)
-                </label>
-                <textarea
-                  rows={3}
-                  value={settings.systemPromptPreset}
-                  onChange={(e) => updateSettings({ systemPromptPreset: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#131314] border border-[rgba(255,255,255,0.08)] text-[#f1f5f9] outline-none resize-none font-mono text-xs"
-                />
-              </div>
-            </div>
-          )}
-
           {/* Composer Tab */}
           {activeTab === "composer" && (
             <div className="space-y-4">
@@ -475,7 +417,7 @@ export function SettingsView() {
                   <div className="flex items-center justify-between p-4 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)]">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-full bg-[#e65100] text-white flex items-center justify-center font-bold text-lg">
-                        {user.name.charAt(0).toUpperCase()}
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                       </div>
                       <div>
                         <h4 className="font-bold text-sm text-[#f1f5f9]">
