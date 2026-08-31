@@ -2,14 +2,14 @@ import { AIProvider, ChatProviderOptions, StreamChunk } from "./AIProvider";
 import { MockAIProvider } from "./MockAIProvider";
 
 export class DeepSeekProvider implements AIProvider {
-  name = "DeepSeekProvider";
+  name = "DeepSeek";
   private apiKey: string;
   private baseUrl: string;
   private fallbackProvider: MockAIProvider;
 
-  constructor(apiKey?: string, baseUrl: string = "https://api.deepseek.com") {
-    this.apiKey = apiKey || process.env.DEEPSEEK_API_KEY || "";
-    this.baseUrl = baseUrl;
+  constructor() {
+    this.apiKey = process.env.DEEPSEEK_API_KEY || "";
+    this.baseUrl = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
     this.fallbackProvider = new MockAIProvider();
   }
 
@@ -34,8 +34,16 @@ export class DeepSeekProvider implements AIProvider {
       modelName = "deepseek-reasoner";
     }
 
+    const defaultSystemPrompt = `คุณคือ GML AI ผู้ช่วยอัจฉริยะภาษาไทยที่ตอบคำถามได้ฉลาด ตรงไปตรงมา กระชับ และเป็นธรรมชาติ
+กฎการตอบ:
+1. ตอบตรงประเด็นและกระชับ (Concise & Direct): หากผู้ใช้ถามคำถามสั้นหรือคำถามทั่วไป ให้ตอบสั้นกระชับ ตรงประเด็นทันที ไม่ต้องเกริ่นนำ ไม่ต้องอารัมภบทยืดยาว ไม่ต้องแบ่งข้อย่อยยาวเหยียดเกินความจำเป็น แต่ต้องได้ใจความสมบูรณ์ ถูกต้อง และฉลาด
+2. ไม่ใช้สัญลักษณ์มาร์กดาวน์พร่ำเพรื่อ: หลีกเลี่ยงการใช้สัญลักษณ์ซ้ำซ้อนหรือแปลกๆ เช่น "- **" หรือตัวหนาติดกันรุงรัง จัดเนื้อหาให้อ่านง่าย สบายตา สะอาดตา
+3. หากผู้ใช้ต้องการรายละเอียด เจาะลึก หรือเขียนโปรแกรม จึงค่อยอธิบายละเอียดเป็นขั้นตอน`;
+
+    const systemMessageContent = options.systemPrompt || defaultSystemPrompt;
+
     const messages = [
-      ...(options.systemPrompt ? [{ role: "system", content: options.systemPrompt }] : []),
+      { role: "system", content: systemMessageContent },
       ...history.map((h) => ({ role: h.role, content: h.content })),
       { role: "user", content: prompt },
     ];
@@ -52,7 +60,7 @@ export class DeepSeekProvider implements AIProvider {
           messages,
           stream: true,
           temperature: options.temperature ?? 0.7,
-          max_tokens: options.maxTokens ?? 4096,
+          max_tokens: options.maxTokens ?? 2048,
         }),
         signal: options.signal,
       });
@@ -74,56 +82,58 @@ export class DeepSeekProvider implements AIProvider {
         const { value, done } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter((l) => l.trim().startsWith("data:"));
+        const rawText = decoder.decode(value, { stream: true });
+        const lines = rawText.split("\n");
 
         for (const line of lines) {
-          const jsonStr = line.replace(/^data:\s*/, "").trim();
-          if (jsonStr === "[DONE]") continue;
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data:")) continue;
+          if (trimmed === "data: [DONE]") {
+            yield {
+              delta: "",
+              content: accumulatedContent,
+              reasoningDelta: "",
+              reasoningContent: accumulatedReasoning,
+              isComplete: true,
+            };
+            return;
+          }
 
           try {
-            const data = JSON.parse(jsonStr);
-            const delta = data.choices?.[0]?.delta;
+            const jsonStr = trimmed.replace(/^data:\s*/, "");
+            const parsed = JSON.parse(jsonStr);
+            const choice = parsed.choices?.[0];
 
-            // DeepSeek Reasoner sends `reasoning_content`
-            if (delta?.reasoning_content) {
-              accumulatedReasoning += delta.reasoning_content;
-              yield {
-                content: accumulatedContent,
-                delta: "",
-                isComplete: false,
-                reasoningDelta: delta.reasoning_content,
-                reasoningContent: accumulatedReasoning,
-              };
-            }
+            if (choice) {
+              const deltaContent = choice.delta?.content || "";
+              const deltaReasoning = choice.delta?.reasoning_content || "";
 
-            // Regular content chunks
-            if (delta?.content) {
-              accumulatedContent += delta.content;
+              accumulatedContent += deltaContent;
+              accumulatedReasoning += deltaReasoning;
+
               yield {
+                delta: deltaContent,
                 content: accumulatedContent,
-                delta: delta.content,
-                isComplete: false,
+                reasoningDelta: deltaReasoning,
                 reasoningContent: accumulatedReasoning,
+                isComplete: choice.finish_reason !== null,
               };
             }
           } catch {
-            // Ignore parse errors on partial SSE chunks
+            // Ignore parse errors on partial chunks
           }
         }
       }
 
       yield {
-        content: accumulatedContent,
         delta: "",
-        isComplete: true,
+        content: accumulatedContent,
+        reasoningDelta: "",
         reasoningContent: accumulatedReasoning,
+        isComplete: true,
       };
-    } catch (err: unknown) {
-      if ((err as Error).name === "AbortError") {
-        throw err;
-      }
-      console.warn("DeepSeek API connection failed, using fallback:", err);
+    } catch (error) {
+      console.error("DeepSeek API stream error, falling back to simulated engine:", error);
       yield* this.fallbackProvider.streamMessage(prompt, history, options);
     }
   }
@@ -133,41 +143,21 @@ export class DeepSeekProvider implements AIProvider {
     history: { role: "user" | "assistant" | "system"; content: string }[],
     options: ChatProviderOptions
   ): Promise<{ content: string; reasoning?: string; tokensUsed?: number }> {
-    if (!this.apiKey) {
-      return this.fallbackProvider.sendMessage(prompt, history, options);
+    let fullContent = "";
+    let fullReasoning = "";
+
+    const stream = this.streamMessage(prompt, history, options);
+    for await (const chunk of stream) {
+      fullContent = chunk.content;
+      if (chunk.reasoningContent) {
+        fullReasoning = chunk.reasoningContent;
+      }
     }
 
-    let modelName = "deepseek-chat";
-    if (options.modelId.includes("r1") || options.modelId.includes("r2") || options.modelId.includes("reasoning")) {
-      modelName = "deepseek-reasoner";
-    }
-
-    const messages = [
-      ...(options.systemPrompt ? [{ role: "system", content: options.systemPrompt }] : []),
-      ...history.map((h) => ({ role: h.role, content: h.content })),
-      { role: "user", content: prompt },
-    ];
-
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages,
-        temperature: options.temperature ?? 0.7,
-        max_tokens: options.maxTokens ?? 4096,
-      }),
-      signal: options.signal,
-    });
-
-    const data = await response.json();
     return {
-      content: data.choices?.[0]?.message?.content || "",
-      reasoning: data.choices?.[0]?.message?.reasoning_content || undefined,
-      tokensUsed: data.usage?.total_tokens,
+      content: fullContent,
+      reasoning: fullReasoning || undefined,
+      tokensUsed: Math.max(1, Math.round(fullContent.length / 4)),
     };
   }
 }

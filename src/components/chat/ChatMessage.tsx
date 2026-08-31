@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { Message } from "@/lib/types";
-import { Avatar } from "@/components/ui/Avatar";
 import { CodeBlock } from "./CodeBlock";
 import { MessageActions } from "./MessageActions";
 import { formatFileSize, formatRelativeTime } from "@/lib/utils/formatters";
@@ -12,8 +11,6 @@ import {
   Brain,
   ChevronDown,
   ChevronUp,
-  AlertCircle,
-  RotateCcw,
   Sparkles,
   Edit2,
   Check,
@@ -21,15 +18,55 @@ import {
   Clock,
   Coins,
 } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
 
 export interface ChatMessageProps {
   message: Message;
 }
 
+/**
+ * Parses inline markdown tokens:
+ * - **bold text**
+ * - *italic*
+ * - `code`
+ */
+function renderInlineText(text: string): React.ReactNode {
+  if (!text) return null;
+
+  // Split by bold (**...**), inline code (`...`), and italics (*...*)
+  const tokens = text.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/g);
+
+  return tokens.map((token, idx) => {
+    if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
+      return (
+        <strong key={idx} className="font-semibold text-[#f1f5f9]">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (token.startsWith("`") && token.endsWith("`") && token.length >= 2) {
+      return (
+        <code
+          key={idx}
+          className="px-1.5 py-0.5 mx-0.5 rounded-md bg-[#131314] border border-[rgba(255,255,255,0.08)] text-sky-400 font-mono text-xs"
+        >
+          {token.slice(1, -1)}
+        </code>
+      );
+    }
+    if (token.startsWith("*") && token.endsWith("*") && token.length >= 2) {
+      return (
+        <em key={idx} className="italic text-slate-300">
+          {token.slice(1, -1)}
+        </em>
+      );
+    }
+    return <span key={idx}>{token}</span>;
+  });
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const { regenerateResponse, editMessageAndResend, isStreaming } = useChatStore();
+  const { editMessageAndResend } = useChatStore();
   const [showReasoning, setShowReasoning] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(message.content);
@@ -67,15 +104,15 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Headings
             if (trimmed.startsWith("### ")) {
               return (
-                <h4 key={pIdx} className="text-sm sm:text-base font-bold text-[hsl(var(--foreground))] mt-4 mb-1.5">
-                  {trimmed.replace("### ", "")}
+                <h4 key={pIdx} className="text-sm sm:text-base font-bold text-white mt-3 mb-1">
+                  {renderInlineText(trimmed.replace("### ", ""))}
                 </h4>
               );
             }
             if (trimmed.startsWith("## ")) {
               return (
-                <h3 key={pIdx} className="text-base sm:text-lg font-bold text-[hsl(var(--foreground))] mt-5 mb-2 border-b border-[hsl(var(--border))] pb-1">
-                  {trimmed.replace("## ", "")}
+                <h3 key={pIdx} className="text-base sm:text-lg font-bold text-white mt-4 mb-2 border-b border-[rgba(255,255,255,0.08)] pb-1">
+                  {renderInlineText(trimmed.replace("## ", ""))}
                 </h3>
               );
             }
@@ -85,9 +122,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
               return (
                 <blockquote
                   key={pIdx}
-                  className="border-l-3 border-blue-500 bg-blue-500/5 px-3.5 py-2 rounded-r-xl text-xs sm:text-sm text-[hsl(var(--foreground))] italic my-2"
+                  className="border-l-3 border-blue-500 bg-blue-500/10 px-3.5 py-2 rounded-r-xl text-xs sm:text-sm text-slate-200 italic my-2"
                 >
-                  {trimmed.replace(/^>\s*/gm, "")}
+                  {renderInlineText(trimmed.replace(/^>\s*/gm, ""))}
                 </blockquote>
               );
             }
@@ -109,23 +146,23 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 );
 
                 return (
-                  <div key={pIdx} className="my-3 overflow-x-auto rounded-xl border border-[hsl(var(--border))]">
+                  <div key={pIdx} className="my-3 overflow-x-auto rounded-xl border border-[rgba(255,255,255,0.08)]">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] font-semibold">
+                      <thead className="bg-[#1e1f20] text-white font-semibold">
                         <tr>
                           {headerCells.map((h, hIdx) => (
-                            <th key={hIdx} className="px-3.5 py-2 border-b border-[hsl(var(--border))]">
-                              {h.replace(/\*\*/g, "")}
+                            <th key={hIdx} className="px-3.5 py-2 border-b border-[rgba(255,255,255,0.08)]">
+                              {renderInlineText(h)}
                             </th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[hsl(var(--border))]">
+                      <tbody className="divide-y divide-[rgba(255,255,255,0.06)] bg-[#131314]">
                         {bodyRows.map((row, rIdx) => (
-                          <tr key={rIdx} className="hover:bg-[hsl(var(--muted)/0.3)]">
+                          <tr key={rIdx} className="hover:bg-[#1e1f20]/50">
                             {row.map((cell, cIdx) => (
                               <td key={cIdx} className="px-3.5 py-2">
-                                {cell.replace(/\*\*/g, "")}
+                                {renderInlineText(cell)}
                               </td>
                             ))}
                           </tr>
@@ -141,12 +178,15 @@ export function ChatMessage({ message }: ChatMessageProps) {
             if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
               const items = trimmed.split(/\n[-*]\s+/).filter(Boolean);
               return (
-                <ul key={pIdx} className="list-disc list-inside space-y-1 my-2 pl-1">
-                  {items.map((item, iIdx) => (
-                    <li key={iIdx} className="text-xs sm:text-sm text-[hsl(var(--foreground))] leading-relaxed">
-                      {item}
-                    </li>
-                  ))}
+                <ul key={pIdx} className="list-disc list-inside space-y-1.5 my-2 pl-1">
+                  {items.map((item, iIdx) => {
+                    const cleanItem = item.replace(/^[-*]\s+/, "");
+                    return (
+                      <li key={iIdx} className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                        {renderInlineText(cleanItem)}
+                      </li>
+                    );
+                  })}
                 </ul>
               );
             }
@@ -155,20 +195,26 @@ export function ChatMessage({ message }: ChatMessageProps) {
             if (/^\d+\.\s+/.test(trimmed)) {
               const items = trimmed.split(/\n\d+\.\s+/).filter(Boolean);
               return (
-                <ol key={pIdx} className="list-decimal list-inside space-y-1 my-2 pl-1">
+                <ol key={pIdx} className="list-decimal list-inside space-y-1.5 my-2 pl-1">
                   {items.map((item, iIdx) => (
-                    <li key={iIdx} className="text-xs sm:text-sm text-[hsl(var(--foreground))] leading-relaxed">
-                      {item}
+                    <li key={iIdx} className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                      {renderInlineText(item)}
                     </li>
                   ))}
                 </ol>
               );
             }
 
-            // Default Paragraph
+            // Regular Paragraph with line breaks and inline styling
+            const lines = trimmed.split("\n");
             return (
-              <p key={pIdx} className="text-xs sm:text-sm text-[hsl(var(--foreground))] leading-relaxed">
-                {trimmed}
+              <p key={pIdx} className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                {lines.map((line, lIdx) => (
+                  <React.Fragment key={lIdx}>
+                    {lIdx > 0 && <br />}
+                    {renderInlineText(line)}
+                  </React.Fragment>
+                ))}
               </p>
             );
           })}
@@ -179,7 +225,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   if (isUser) {
     return (
-      <div className="flex justify-end my-4 px-1 select-text group">
+      <div className="flex justify-end my-4 px-1 select-text group animate-fade-up">
         <div className="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
           {/* Attached Files */}
           {message.attachments && message.attachments.length > 0 && (
@@ -187,12 +233,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
               {message.attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-[hsl(var(--muted))] border border-[hsl(var(--border))] text-xs"
+                  className="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] text-xs"
                 >
-                  <FileText className="h-4 w-4 text-blue-500" />
+                  <FileText className="h-4 w-4 text-blue-400" />
                   <div className="flex flex-col">
                     <span className="font-medium truncate max-w-[150px]">{att.name}</span>
-                    <span className="text-[10px] text-[hsl(var(--muted-foreground))]">
+                    <span className="text-[10px] text-slate-400">
                       {formatFileSize(att.size)}
                     </span>
                   </div>
@@ -201,158 +247,123 @@ export function ChatMessage({ message }: ChatMessageProps) {
             </div>
           )}
 
-          {/* User Bubble */}
-          <div className="relative rounded-2xl rounded-tr-xs bg-blue-600 text-white px-4 py-2.5 text-xs sm:text-sm shadow-sm leading-relaxed">
+          {/* User Message Bubble */}
+          <div className="relative group/bubble">
             {isEditing ? (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2 p-3 rounded-2xl bg-[#1e1f20] border border-blue-500 w-full min-w-[280px]">
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="w-full bg-black/20 text-white rounded-lg p-2 text-xs sm:text-sm outline-none resize-none"
+                  className="w-full bg-transparent border-0 resize-none text-xs sm:text-sm text-white focus:outline-none"
                   rows={3}
+                  autoFocus
                 />
                 <div className="flex justify-end gap-1.5">
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="p-1 hover:bg-white/20 rounded cursor-pointer"
+                    className="p-1 px-2.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1 cursor-pointer"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3 w-3" />
+                    <span>ยกเลิก</span>
                   </button>
                   <button
                     onClick={handleSaveEdit}
-                    className="p-1 hover:bg-white/20 rounded cursor-pointer font-bold"
+                    className="p-1 px-2.5 rounded-lg text-xs bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1 cursor-pointer font-medium"
                   >
-                    <Check className="h-3.5 w-3.5" />
+                    <Check className="h-3 w-3" />
+                    <span>บันทึก & ส่งใหม่</span>
                   </button>
                 </div>
               </div>
             ) : (
-              <span>{message.content}</span>
+              <div className="px-4 py-2.5 rounded-[20px] rounded-tr-sm bg-[#0b57d0] text-white text-xs sm:text-sm font-normal leading-relaxed shadow-xs">
+                {message.content}
+              </div>
             )}
-          </div>
 
-          {/* Edit trigger on hover */}
-          {!isEditing && (
-            <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="text-[10px] text-[hsl(var(--muted-foreground))]">
-                {formatRelativeTime(message.createdAt)}
-              </span>
+            {/* Quick Edit Button on Hover */}
+            {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="p-1 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] cursor-pointer rounded"
+                className="opacity-0 group-hover/bubble:opacity-100 absolute -left-8 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
                 title="แก้ไขข้อความ"
               >
-                <Edit2 className="h-3 w-3" />
+                <Edit2 className="h-3.5 w-3.5" />
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
-  // AI Assistant Message
+  // Assistant Message
   return (
-    <div className="flex items-start gap-3.5 my-5 px-1 select-text group">
-      {/* Bot Avatar */}
-      <Avatar variant="bot" size="md" className="shrink-0 mt-0.5" />
+    <div className="flex items-start gap-3 my-4 px-1 select-text group animate-fade-up">
+      {/* GML Avatar Icon */}
+      <div className="shrink-0 mt-0.5">
+        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#0842a0] via-[#0b57d0] to-[#38bdf8] flex items-center justify-center text-white shadow-xs">
+          <Sparkles className="h-4 w-4" />
+        </div>
+      </div>
 
-      <div className="flex-1 min-w-0">
-        {/* Model Badge Header + Thinking Time + Tokens Badge */}
-        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span className="text-xs font-bold text-[hsl(var(--foreground))] flex items-center gap-1.5">
-            {message.modelName || "GML AI"}
+      <div className="flex-1 min-w-0 max-w-[90%] sm:max-w-[85%] space-y-2">
+        {/* Model Metadata Header */}
+        <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-400">
+          <span className="font-semibold text-slate-200">
+            {message.modelName || "DeepSeek V3 (Chat)"}
           </span>
-          <span className="text-[10px] text-[hsl(var(--muted-foreground))]">
+
+          <span className="text-[10px] text-slate-500">
             {formatRelativeTime(message.createdAt)}
           </span>
 
-          {/* Elapsed Thinking Time */}
-          {message.thinkingTimeSeconds !== undefined && (
-            <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10.5px] text-slate-600 dark:text-slate-400 font-medium"
-              title="เวลาที่ใช้ในการประมวลผลคำตอบ"
-            >
-              <Clock className="h-3 w-3 text-slate-500" />
-              <span>{message.thinkingTimeSeconds}s</span>
+          {message.thinkingTimeSeconds !== undefined && message.thinkingTimeSeconds > 0 && (
+            <span className="flex items-center gap-0.5 text-[10px] text-slate-400 bg-[#1e1f20] px-1.5 py-0.5 rounded-md border border-[rgba(255,255,255,0.06)]">
+              <Clock className="h-2.5 w-2.5" />
+              <span>{message.thinkingTimeSeconds.toFixed(1)}s</span>
             </span>
           )}
 
-          {/* Tokens Consumed Badge */}
-          {message.tokensUsed !== undefined && (
-            <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/30 text-[10.5px] text-blue-600 dark:text-blue-400 font-semibold border border-blue-200/50 dark:border-blue-800/50"
-              title="จำนวนโทเคนที่ใช้ไปในคำตอบนี้"
-            >
-              <Coins className="h-3 w-3 text-blue-500" />
+          {message.tokensUsed !== undefined && message.tokensUsed > 0 && (
+            <span className="flex items-center gap-0.5 text-[10px] text-sky-400 bg-sky-950/40 px-1.5 py-0.5 rounded-md border border-sky-800/40">
+              <Coins className="h-2.5 w-2.5" />
               <span>{message.tokensUsed} โทเคน</span>
             </span>
           )}
         </div>
 
-        {/* Reasoning Dropdown (if available) */}
+        {/* Thought Process (Reasoning Trace) Dropdown */}
         {message.reasoning && (
-          <div className="my-2 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] text-xs overflow-hidden">
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#1e1f20]/60 overflow-hidden text-xs">
             <button
-              type="button"
               onClick={() => setShowReasoning(!showReasoning)}
-              className="w-full flex items-center justify-between px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] cursor-pointer font-medium"
+              className="w-full flex items-center justify-between px-3.5 py-2 text-slate-300 hover:text-white transition-colors cursor-pointer bg-[#1e1f20]/90"
             >
-              <div className="flex items-center gap-1.5">
-                <Brain className="h-3.5 w-3.5 text-indigo-500" />
-                <span>กระบวนการคิด (Thought Process)</span>
+              <div className="flex items-center gap-2">
+                <Brain className="h-3.5 w-3.5 text-sky-400" />
+                <span className="font-medium text-[11px]">กระบวนการคิด (Thought Process)</span>
               </div>
-              {showReasoning ? (
-                <ChevronUp className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5" />
-              )}
+              {showReasoning ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
+
             {showReasoning && (
-              <div className="px-3.5 py-2.5 border-t border-[hsl(var(--border))] text-xs text-[hsl(var(--muted-foreground))] leading-relaxed italic bg-[hsl(var(--card)/0.4)]">
+              <div className="p-3.5 border-t border-[rgba(255,255,255,0.06)] font-mono text-[11px] text-slate-300 leading-relaxed max-h-56 overflow-y-auto whitespace-pre-wrap bg-[#131314]">
                 {message.reasoning}
               </div>
             )}
           </div>
         )}
 
-        {/* Error State */}
-        {message.isError && (
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs my-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span className="flex-1">{message.errorMessage || "เกิดข้อผิดพลาดในการตอบกลับ"}</span>
-            <button
-              type="button"
-              disabled={isStreaming}
-              onClick={() => regenerateResponse(message.id)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500 text-white font-medium text-xs hover:bg-red-600 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>ลองใหม่</span>
-            </button>
-          </div>
-        )}
-
-        {/* Content & Streaming Cursor */}
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          {message.content ? (
-            renderFormattedContent(message.content)
-          ) : message.isStreaming ? (
-            <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))] py-2">
-              <Sparkles className="h-4 w-4 text-blue-500 animate-spin" />
-              <span>GML กำลังคิดและตอบกลับ...</span>
-            </div>
-          ) : null}
-
-          {message.isStreaming && message.content && (
-            <span className="inline-block w-2 h-4 ml-1 bg-blue-500 rounded-xs animate-pulse align-middle" />
-          )}
+        {/* Formatted Content */}
+        <div className="prose-clean">
+          {renderFormattedContent(message.content)}
         </div>
 
-        {/* Message Actions Bar (Only show when not streaming) */}
-        {!message.isStreaming && !message.isError && message.content && (
+        {/* Action Toolbar */}
+        <div className="pt-1">
           <MessageActions message={message} />
-        )}
+        </div>
       </div>
     </div>
   );
