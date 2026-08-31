@@ -5,43 +5,43 @@
   .dark,
   html,
   body {
-    /* Gemini Sleek Deep Dark Palette Locked Globally */
-    --gml-primary: 217.2 91.2% 59.8%;
-    --gml-primary-hover: 217.2 91.2% 65%;
-    --gml-primary-soft: 217.2 91.2% 15%;
+    /* Exact Calibrated Gemini Deep Slate Dark Palette */
+    --gml-primary: 217 89% 51%; /* #0b57d0 */
+    --gml-primary-hover: 217 89% 45%; /* #0842a0 */
+    --gml-primary-soft: 217 89% 15%;
 
-    --background: 220 5% 7.8%; /* #131314 */
-    --foreground: 210 20% 96%; /* #f1f5f9 */
+    --background: 240 2% 8%; /* #131314 */
+    --foreground: 220 15% 94%; /* #e3e3e3 */
 
-    --card: 220 5% 12.2%; /* #1e1f20 */
-    --card-foreground: 210 20% 96%;
+    --card: 240 2% 12%; /* #1e1f20 */
+    --card-foreground: 220 15% 94%;
 
-    --popover: 220 5% 12.2%;
-    --popover-foreground: 210 20% 96%;
+    --popover: 240 2% 12%;
+    --popover-foreground: 220 15% 94%;
 
     --primary: var(--gml-primary);
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 5% 16.5%; /* #282a2c */
-    --secondary-foreground: 210 20% 96%;
+    --secondary: 240 2% 16%; /* #282a2c */
+    --secondary-foreground: 220 15% 94%;
 
-    --muted: 220 5% 16.5%;
-    --muted-foreground: 215 15% 65%;
+    --muted: 240 2% 16%;
+    --muted-foreground: 220 10% 65%; /* #94a3b8 */
 
-    --accent: 220 5% 18%;
-    --accent-foreground: 210 20% 96%;
+    --accent: 240 2% 18%;
+    --accent-foreground: 220 15% 94%;
 
-    --destructive: 0 62.8% 40%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 5% 16.5%;
-    --input: 220 5% 16.5%;
-    --ring: 217.2 91.2% 59.8%;
+    --border: 240 2% 17%;
+    --input: 240 2% 17%;
+    --ring: 217 89% 51%;
 
-    --sidebar-bg: 220 5% 12.2%; /* #1e1f20 */
-    --sidebar-border: 220 5% 16%;
-    --sidebar-hover: 220 5% 16.5%;
-    --sidebar-active: 220 5% 20%;
+    --sidebar-bg: 240 2% 12%; /* #1e1f20 */
+    --sidebar-border: 240 2% 16%;
+    --sidebar-hover: 240 2% 16%;
+    --sidebar-active: 240 2% 20%;
 
     --radius: 1rem;
   }
@@ -54,9 +54,9 @@
 html,
 body {
   background-color: #131314 !important;
-  color: #f1f5f9 !important;
+  color: #e3e3e3 !important;
   color-scheme: dark !important;
-  font-family: var(--font-thai), var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-thai), var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -73,12 +73,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* Subtle Shimmer & Float Keyframes */
@@ -99,7 +99,7 @@ body {
   50% {
     opacity: 1;
     transform: scale(1.005);
-    filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.3));
+    filter: drop-shadow(0 0 10px rgba(11, 87, 208, 0.3));
   }
   100% {
     opacity: 0.9;
@@ -110,7 +110,7 @@ body {
 @keyframes fadeInFast {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -127,7 +127,7 @@ body {
 }
 
 .animate-fade-up {
-  animation: fadeInFast 220ms ease-out forwards;
+  animation: fadeInFast 180ms ease-out forwards;
 }
 
 /* Code Highlighting styling */
