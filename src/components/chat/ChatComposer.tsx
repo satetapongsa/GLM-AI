@@ -94,7 +94,7 @@ export function ChatComposer() {
   const hasContent = composerText.trim().length > 0 || composerAttachments.length > 0;
 
   return (
-    <div className="w-full max-w-[720px] mx-auto px-3 sm:px-4 pb-3">
+    <div className="w-full max-w-[720px] mx-auto px-3 sm:px-4 pb-3 relative">
       {/* Outer Composer Container */}
       <div className="relative flex flex-col rounded-[24px] bg-[#1e1f20] border border-[#0b57d0]/60 focus-within:border-[#0b57d0] shadow-sm px-3.5 pt-3 pb-2 transition-colors">
         {/* Attachment Previews */}
@@ -121,7 +121,7 @@ export function ChatComposer() {
 
         {/* Bottom Actions Row */}
         <div className="flex items-center justify-between gap-1.5 mt-2 pt-1">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
             {/* Plus Attachment Button */}
             <div className="relative shrink-0">
               <button
