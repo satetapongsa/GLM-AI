@@ -21,11 +21,10 @@ const notoSansThai = Noto_Sans_Thai({
 export const metadata: Metadata = {
   metadataBase: new URL("https://glm-ai-gay.vercel.app"),
   title: {
-    default: "GML AI - ผู้ช่วยอัจฉริยะภาษาไทย & DeepSeek AI",
+    default: "GML AI",
     template: `%s | ${BRAND_CONFIG.name}`,
   },
-  description:
-    "GML AI แพลตฟอร์ม AI ผู้ช่วยอัจฉริยะภาษาไทย ขับเคลื่อนด้วย DeepSeek Master Engine ตอบคำถาม วิเคราะห์ข้อมูล เขียนโค้ด และอ่านไฟล์ได้อย่างรวดเร็วและแม่นยำ พัฒนาโดย satetapong sanguansuk",
+  description: "ผู้ช่วยอัจฉริยะภาษาไทย ขับเคลื่อนด้วย DeepSeek AI",
   keywords: [
     "GML AI",
     "GooMiRu",
@@ -33,7 +32,6 @@ export const metadata: Metadata = {
     "Thai AI",
     "ผู้ช่วย AI ภาษาไทย",
     "AI Chatbot",
-    "AI เขียนโค้ด",
   ],
   authors: [{ name: "satetapong sanguansuk" }],
   creator: "satetapong sanguansuk",
@@ -43,9 +41,8 @@ export const metadata: Metadata = {
     apple: "/favicon.ico",
   },
   openGraph: {
-    title: "GML AI (GooMiRu) - ผู้ช่วยอัจฉริยะภาษาไทย & DeepSeek AI",
-    description:
-      "แพลตฟอร์ม AI ภาษาไทยที่ฉลาด ตอบไว กระชับ เขียนโค้ด และอ่านไฟล์ได้จริง ขับเคลื่อนด้วย DeepSeek Master Engine",
+    title: "GML AI",
+    description: "ผู้ช่วยอัจฉริยะภาษาไทย ขับเคลื่อนด้วย DeepSeek AI",
     url: "https://glm-ai-gay.vercel.app",
     siteName: "GML AI",
     locale: "th_TH",
@@ -53,9 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GML AI (GooMiRu) - ผู้ช่วยอัจฉริยะภาษาไทย",
-    description:
-      "AI ผู้ช่วยอัจฉริยะภาษาไทย ตอบไว เขียนโค้ด และอ่านไฟล์ได้จริง ขับเคลื่อนด้วย DeepSeek Master Engine",
+    title: "GML AI",
+    description: "ผู้ช่วยอัจฉริยะภาษาไทย ขับเคลื่อนด้วย DeepSeek AI",
   },
   other: {
     "color-scheme": "dark",
