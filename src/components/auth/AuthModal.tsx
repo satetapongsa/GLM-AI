@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { useAuthStore } from "@/lib/store/useAuthStore";
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 export function AuthModal() {
@@ -95,7 +95,7 @@ export function AuthModal() {
         </div>
 
         {/* Sub-heading */}
-        <h3 className="text-[14px] font-medium text-slate-800 dark:text-slate-200">
+        <h3 className="text-[14.5px] font-medium text-slate-800 dark:text-slate-100">
           เข้าสู่ระบบหรือสมัครสมาชิก
         </h3>
 
@@ -107,7 +107,7 @@ export function AuthModal() {
               type="button"
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 h-11 px-5 rounded-full border border-slate-250 dark:border-slate-700 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800 text-[13.5px] font-medium text-slate-850 dark:text-slate-100 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-3 h-11 px-5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-[13.5px] font-semibold text-slate-900 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
             >
               {/* Google Colorful G Icon */}
               <svg className="h-4.5 w-4.5 shrink-0" viewBox="0 0 24 24">
@@ -128,7 +128,7 @@ export function AuthModal() {
                   fill="#EA4335"
                 />
               </svg>
-              <span>ดำเนินการต่อด้วย Google</span>
+              <span className="text-slate-900 font-semibold">ดำเนินการต่อด้วย Google</span>
             </button>
 
             {/* Microsoft Button */}
@@ -136,7 +136,7 @@ export function AuthModal() {
               type="button"
               onClick={handleMicrosoftAuth}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 h-11 px-5 rounded-full border border-slate-250 dark:border-slate-700 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800 text-[13.5px] font-medium text-slate-850 dark:text-slate-100 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-3 h-11 px-5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-[13.5px] font-semibold text-slate-900 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
             >
               {/* Microsoft 4-Color Grid Icon */}
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 21 21">
@@ -145,7 +145,7 @@ export function AuthModal() {
                 <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
                 <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
               </svg>
-              <span>ดำเนินการต่อด้วย Microsoft</span>
+              <span className="text-slate-900 font-semibold">ดำเนินการต่อด้วย Microsoft</span>
             </button>
 
             {/* Apple Button */}
@@ -153,13 +153,13 @@ export function AuthModal() {
               type="button"
               onClick={handleAppleAuth}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 h-11 px-5 rounded-full border border-slate-250 dark:border-slate-700 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800 text-[13.5px] font-medium text-slate-850 dark:text-slate-100 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-3 h-11 px-5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-[13.5px] font-semibold text-slate-900 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
             >
               {/* Apple Icon */}
-              <svg className="h-4.5 w-4.5 shrink-0 fill-current" viewBox="0 0 170 170">
+              <svg className="h-4.5 w-4.5 shrink-0 fill-slate-900" viewBox="0 0 170 170">
                 <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.7-7.88-12-14.52-6.53-10.15-11.75-21.75-15.66-34.8-3.92-13.06-5.88-25.2-5.88-36.43 0-14.16 3.65-26.04 10.95-35.63 7.3-9.59 16.27-14.46 26.91-14.62 4.8-.13 10.17 1.25 16.12 4.13 5.95 2.89 9.87 4.39 11.77 4.49 1.5.09 5.64-1.44 12.42-4.59 6.78-3.15 12.33-4.54 16.65-4.17 12.5.94 22.56 5.56 30.17 13.88-10.95 6.63-16.32 15.64-16.12 27.02.2 9.07 3.67 16.8 10.42 23.2 6.75 6.4 14.86 10.02 24.33 10.87-2.12 6.53-4.63 13.08-7.53 19.67zm-32.34-114.6c.11-2.92-.35-5.91-1.38-8.98-1.03-3.07-2.61-5.95-4.73-8.63-2.61-3.26-5.78-5.71-9.5-7.35-3.73-1.63-7.5-2.52-11.31-2.69-.11 2.92.35 5.86 1.38 8.83 1.03 2.97 2.66 5.82 4.88 8.56 2.5 3.04 5.66 5.42 9.49 7.15 3.82 1.72 7.56 2.76 11.17 3.11z" />
               </svg>
-              <span>ดำเนินการต่อด้วย Apple</span>
+              <span className="text-slate-900 font-semibold">ดำเนินการต่อด้วย Apple</span>
             </button>
 
             {/* Email alternative toggle */}
@@ -167,7 +167,7 @@ export function AuthModal() {
               <button
                 type="button"
                 onClick={() => setIsEmailMode(true)}
-                className="text-[12px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer underline"
+                className="text-[12px] font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer underline underline-offset-4"
               >
                 หรือใช้อีเมลและรหัสผ่าน
               </button>
@@ -191,7 +191,7 @@ export function AuthModal() {
                     placeholder="เช่น satetapong"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -207,7 +207,7 @@ export function AuthModal() {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -222,7 +222,7 @@ export function AuthModal() {
                   placeholder="รหัสผ่าน"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-9 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-9 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="button"
@@ -237,7 +237,7 @@ export function AuthModal() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-10 rounded-full bg-[#0b57d0] hover:bg-[#0842a0] text-white font-medium text-xs shadow-xs transition-colors cursor-pointer mt-2"
+              className="w-full h-10 rounded-full bg-[#0b57d0] hover:bg-[#0842a0] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer mt-2"
             >
               {emailMode === "login" ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
             </button>
@@ -253,7 +253,7 @@ export function AuthModal() {
               <button
                 type="button"
                 onClick={() => setEmailMode(emailMode === "login" ? "register" : "login")}
-                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
               >
                 {emailMode === "login" ? "ยังไม่มีบัญชี? สมัครสมาชิก" : "มีบัญชีแล้ว? เข้าสู่ระบบ"}
               </button>
@@ -263,8 +263,8 @@ export function AuthModal() {
 
         {/* Bottom Divider and Version 1.0.0 matching Reference Image */}
         <div className="w-full max-w-[340px] pt-4">
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
-            <span className="text-[12px] text-slate-400 dark:text-slate-500">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
+            <span className="text-[12px] text-slate-500 dark:text-slate-400">
               เวอร์ชั่น 1.0.0
             </span>
           </div>
