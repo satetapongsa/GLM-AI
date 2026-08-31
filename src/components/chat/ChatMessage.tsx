@@ -279,7 +279,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     return (
       <div className="flex justify-end my-4 px-1 select-text group animate-fade-up">
         <div className="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
-          {/* Attached Files */}
+          {/* Attached Files & Image Thumbnails */}
           {message.attachments && message.attachments.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2 justify-end">
               {message.attachments.map((att) => (
@@ -287,9 +287,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   key={att.id}
                   className="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] text-xs"
                 >
-                  <FileText className="h-4 w-4 text-blue-400" />
-                  <div className="flex flex-col">
-                    <span className="font-medium truncate max-w-[150px]">{att.name}</span>
+                  {att.previewUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={att.previewUrl}
+                      alt={att.name}
+                      className="h-9 w-9 object-cover rounded-lg shrink-0 border border-slate-700"
+                    />
+                  ) : (
+                    <FileText className="h-4 w-4 text-blue-400 shrink-0" />
+                  )}
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium truncate max-w-[140px] text-slate-200">{att.name}</span>
                     <span className="text-[10px] text-slate-400">
                       {formatFileSize(att.size)}
                     </span>
