@@ -14,15 +14,35 @@ export function ProviderIcon({
   className,
 }: ProviderIconProps) {
   const sizeClasses = {
-    sm: "h-6 w-6 p-1 rounded-md",
-    md: "h-8 w-8 p-1.5 rounded-lg",
-    lg: "h-10 w-10 p-2 rounded-xl",
+    sm: "h-6 w-6 p-1 rounded-lg",
+    md: "h-8 w-8 p-1.5 rounded-xl",
+    lg: "h-10 w-10 p-2 rounded-2xl",
     xl: "h-12 w-12 p-2.5 rounded-2xl",
   };
 
   const p = (provider || "").toLowerCase();
 
-  // 1. OpenAI / ChatGPT
+  // 1. Anthropic / Claude (Official Terracotta Orange Starburst Asterisk)
+  if (p.includes("anthropic") || p.includes("claude")) {
+    return (
+      <div
+        className={cn(
+          "bg-[#d97706]/15 text-[#f97316] border border-[#d97706]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          sizeClasses[size],
+          className
+        )}
+        title="Anthropic Claude"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#d97706]">
+          {/* Official Claude Multi-Ray Starburst Asterisk */}
+          <path d="M12 2a1 1 0 0 1 1 1v3.1a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1zm0 15.9a1 1 0 0 1 1 1V22a1 1 0 1 1-2 0v-3.1a1 1 0 0 1 1-1zm7.07-13.97a1 1 0 0 1 0 1.41l-2.19 2.2a1 1 0 1 1-1.41-1.42l2.19-2.19a1 1 0 0 1 1.41 0zm-11.31 11.32a1 1 0 0 1 0 1.41l-2.2 2.19a1 1 0 1 1-1.41-1.41l2.2-2.19a1 1 0 0 1 1.41 0zm14.24-4.25a1 1 0 0 1 0 2h-3.1a1 1 0 1 1 0-2h3.1zm-15.9 0a1 1 0 0 1 0 2H3a1 1 0 1 1 0-2h3.1zm12.97 7.07a1 1 0 0 1-1.41 0l-2.2-2.19a1 1 0 1 1 1.42-1.41l2.19 2.19a1 1 0 0 1 0 1.41zM6.34 6.34a1 1 0 0 1-1.41 0L2.74 4.15a1 1 0 1 1 1.41-1.41l2.19 2.19a1 1 0 0 1 0 1.41z" />
+          <circle cx="12" cy="12" r="3.5" fill="currentColor" />
+        </svg>
+      </div>
+    );
+  }
+
+  // 2. OpenAI / ChatGPT (Official Spiral Rosette Logo)
   if (p.includes("openai") || p.includes("gpt")) {
     return (
       <div
@@ -40,25 +60,7 @@ export function ProviderIcon({
     );
   }
 
-  // 2. Anthropic / Claude
-  if (p.includes("anthropic") || p.includes("claude")) {
-    return (
-      <div
-        className={cn(
-          "bg-[#d97706]/15 text-[#f59e0b] border border-[#d97706]/30 flex items-center justify-center shrink-0 shadow-2xs",
-          sizeClasses[size],
-          className
-        )}
-        title="Anthropic Claude"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-          <path d="M13.727 3.333H10.273L4 20.667H7.455L8.91 16.5H15.09L16.545 20.667H20L13.727 3.333ZM9.818 13.75L12 7.5L14.182 13.75H9.818Z" />
-        </svg>
-      </div>
-    );
-  }
-
-  // 3. DeepSeek (Official Whale Fin & Wave Logo)
+  // 3. DeepSeek (Official Whale Fin & Dynamic Wave Logo)
   if (p.includes("deepseek")) {
     return (
       <div
@@ -69,14 +71,14 @@ export function ProviderIcon({
         )}
         title="DeepSeek"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-          <path d="M2.5 12C2.5 6.753 6.753 2.5 12 2.5c3.218 0 6.072 1.6 7.788 4.053l-3.288 3.288A5.5 5.5 0 0 0 12 8a5.5 5.5 0 0 0-5.5 5.5c0 1.258.423 2.418 1.134 3.344l-3.447 3.447A9.458 9.458 0 0 1 2.5 12zm19 0c0 5.247-4.253 9.5-9.5 9.5a9.458 9.458 0 0 1-7.788-4.053l3.288-3.288A5.5 5.5 0 0 0 12 16a5.5 5.5 0 0 0 5.5-5.5c0-1.258-.423-2.418-1.134-3.344l3.447-3.447A9.458 9.458 0 0 1 21.5 12z" />
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#0066ff]">
+          <path d="M3.2 14.5c2.4-5.2 7.8-8.2 13.5-7.4 2.1.3 4.1 1.2 5.8 2.6-1.4 3.9-4.8 6.7-8.9 7.4-3.7.6-7.5-.6-10.4-2.6zm3.6-7.8c1.8-1.4 4.1-2.2 6.4-2.2 4.6 0 8.7 2.7 10.4 6.8-.9-1.1-2.1-1.9-3.5-2.4-4.2-1.6-8.9-.4-11.9 2.9-1.2 1.3-2.1 2.9-2.6 4.6-.2-3.8 2.1-7.8 5.2-9.7z" />
         </svg>
       </div>
     );
   }
 
-  // 4. Google / Gemini (Official 4-pointed sparkle gradient star)
+  // 4. Google / Gemini (Official 4-pointed Sparkle Gradient Star)
   if (p.includes("google") || p.includes("gemini")) {
     return (
       <div
@@ -89,7 +91,7 @@ export function ProviderIcon({
       >
         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
           <path
-            d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"
+            d="M12 2C12 7.52 7.52 12 2 12C7.52 12 12 16.48 12 22C12 16.48 16.48 12 22 12C16.48 12 12 7.52 12 2Z"
             fill="url(#gemini-icon-grad)"
           />
           <defs>
@@ -115,14 +117,14 @@ export function ProviderIcon({
         )}
         title="Flux (Black Forest Labs)"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#ec4899]">
           <path d="M12 2L2 7.5v9L12 22l10-5.5v-9L12 2zm0 2.24l7.6 4.18-3.4 1.87-7.6-4.18 3.4-1.87zm-8 5.64l7 3.85v7.7l-7-3.85V9.88zm9 11.55v-7.7l7-3.85v7.7l-7 3.85z" />
         </svg>
       </div>
     );
   }
 
-  // 6. Sora / OpenAI Video (Official Cinematic Aperture Iris)
+  // 6. Sora / OpenAI Video (Official Aperture Cine Lens)
   if (p.includes("sora")) {
     return (
       <div
@@ -133,14 +135,14 @@ export function ProviderIcon({
         )}
         title="Sora"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#ea580c]">
           <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-2-12.5v7l6-3.5z" />
         </svg>
       </div>
     );
   }
 
-  // 7. Suno AI (Official Sound Wave Music Circle)
+  // 7. Suno AI (Official Sound Wave Music)
   if (p.includes("suno")) {
     return (
       <div
@@ -151,7 +153,7 @@ export function ProviderIcon({
         )}
         title="Suno AI"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#8b5cf6]">
           <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
         </svg>
       </div>
@@ -169,14 +171,14 @@ export function ProviderIcon({
         )}
         title="Meta Llama"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#0081fb]">
           <path d="M16.99 4c-2.3 0-4.22 1.34-5 3.32-.78-1.98-2.7-3.32-5-3.32-3.31 0-6 2.69-6 6 0 4.19 5.3 9.42 10.45 10.9.36.1.74.1 1.1 0C17.7 19.42 23 14.19 23 10c0-3.31-2.69-6-6.01-6zm-5.99 13.9C6.88 16.5 4 12.35 4 10c0-1.65 1.35-3 3-3 1.83 0 3.38 1.25 3.84 3h2.32c.46-1.75 2.01-3 3.84-3 1.65 0 3 1.35 3 3 0 2.35-2.88 6.5-7 7.9z" />
         </svg>
       </div>
     );
   }
 
-  // 9. Mistral AI (Official 4-Block Pixel Array)
+  // 9. Mistral AI (Official Layered Pixel Bricks)
   if (p.includes("mistral")) {
     return (
       <div
@@ -187,17 +189,14 @@ export function ProviderIcon({
         )}
         title="Mistral AI"
       >
-        <div className="grid grid-cols-2 gap-0.5 w-full h-full p-0.5">
-          <div className="bg-current rounded-xs" />
-          <div className="bg-current rounded-xs opacity-75" />
-          <div className="bg-current rounded-xs opacity-75" />
-          <div className="bg-current rounded-xs" />
-        </div>
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#f97316]">
+          <path d="M3 4h4v4H3V4zm14 0h4v4h-4V4zM3 10h4v4H3v-4zm7 0h4v4h-4v-4zm7 0h4v4h-4v-4zM3 16h4v4H3v-4zm14 0h4v4h-4v-4z" />
+        </svg>
       </div>
     );
   }
 
-  // 10. xAI / Grok
+  // 10. xAI / Grok (Official Bold 𝕏)
   if (p.includes("xai") || p.includes("grok")) {
     return (
       <div
@@ -208,7 +207,7 @@ export function ProviderIcon({
         )}
         title="xAI Grok"
       >
-        <span className="text-[13px] leading-none">𝕏</span>
+        <span className="text-[14px] leading-none font-bold">𝕏</span>
       </div>
     );
   }
