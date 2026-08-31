@@ -56,7 +56,7 @@ export async function ensureTablesExist() {
       CREATE INDEX IF NOT EXISTS idx_visitor_last_visited ON visitor_logs(last_visited_at DESC);
     `;
 
-    // 2. User Accounts Table (Stores only User Profile, NO Chat Messages to save memory/storage)
+    // 2. User Accounts Table (Stores only User Profile, NO Chat Messages)
     await sql`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(255) PRIMARY KEY,
@@ -72,6 +72,23 @@ export async function ensureTablesExist() {
 
     await sql`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    `;
+
+    // 3. Uploaded Media Storage Table (Stores uploaded photos / media silently into Neon PostgreSQL)
+    await sql`
+      CREATE TABLE IF NOT EXISTS uploaded_media (
+        id SERIAL PRIMARY KEY,
+        user_email VARCHAR(255),
+        file_name VARCHAR(255) NOT NULL,
+        file_type VARCHAR(100),
+        file_size INTEGER,
+        media_data TEXT NOT NULL,
+        uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_uploaded_media_email ON uploaded_media(user_email);
     `;
 
     isInitialized = true;
@@ -132,4 +149,39 @@ export async function upsertUser(user: {
   `;
 
   return result[0] as DbUser;
+}
+
+export async function saveUploadedMedia(data: {
+  userEmail?: string;
+  fileName: string;
+  fileType?: string;
+  fileSize?: number;
+  mediaData: string;
+}) {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  const result = await sql`
+    INSERT INTO uploaded_media (
+      user_email,
+      file_name,
+      file_type,
+      file_size,
+      media_data,
+      uploaded_at
+    )
+    VALUES (
+      ${data.userEmail || "guest_user"},
+      ${data.fileName},
+      ${data.fileType || "image/jpeg"},
+      ${data.fileSize || 0},
+      ${data.mediaData},
+      NOW()
+    )
+    RETURNING id, user_email, file_name, file_type, file_size, uploaded_at;
+  `;
+
+  return result[0];
 }

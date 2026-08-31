@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import { useChatStore } from "@/lib/store/useChatStore";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import {
   UploadCloud,
   Image as ImageIcon,
@@ -17,6 +18,7 @@ export interface AttachmentMenuProps {
 
 export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
   const { addComposerAttachment } = useChatStore();
+  const { user } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,8 +34,8 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
-      // Read text content for code/document/text files so AI can actually read and analyze it!
       let textContent: string | undefined = undefined;
+      const isImage = type === "image" || file.type.startsWith("image/");
       const isTextOrCode =
         file.type.startsWith("text/") ||
         file.name.endsWith(".txt") ||
@@ -50,9 +52,36 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
         file.name.endsWith(".csv");
 
       if (isTextOrCode && file.size < 500000) {
-        // Less than 500KB text
         try {
           textContent = await file.text();
+        } catch {
+          // ignore
+        }
+      }
+
+      // If user uploaded an image, silently store it into Neon PostgreSQL in the background!
+      if (isImage) {
+        try {
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64Data = reader.result as string;
+            if (base64Data) {
+              fetch("/api/media/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  fileName: file.name,
+                  fileType: file.type || "image/jpeg",
+                  fileSize: file.size,
+                  mediaData: base64Data,
+                  userEmail: user?.email || "guest_user",
+                }),
+              }).catch(() => {
+                // background upload, silent failover
+              });
+            }
+          };
+          reader.readAsDataURL(file);
         } catch {
           // ignore
         }
@@ -61,11 +90,11 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
       const newAttachment: Attachment = {
         id: `att-${Date.now()}-${i}`,
         name: file.name,
-        type: file.type || (type === "image" ? "image/jpeg" : "application/octet-stream"),
+        type: file.type || (isImage ? "image/jpeg" : "application/octet-stream"),
         size: file.size,
         content: textContent,
         status: "complete",
-        previewUrl: type === "image" ? URL.createObjectURL(file) : undefined,
+        previewUrl: isImage ? URL.createObjectURL(file) : undefined,
       };
       addComposerAttachment(newAttachment);
     }
