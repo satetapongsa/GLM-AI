@@ -64,6 +64,56 @@ function renderInlineText(text: string): React.ReactNode {
   });
 }
 
+/**
+ * Parses content and instantly recognizes both completed and in-progress streaming code blocks.
+ */
+function parseContentWithCodeBlocks(content: string) {
+  const result: { type: "code" | "text"; language?: string; content: string }[] = [];
+
+  let remaining = content;
+  while (remaining.length > 0) {
+    const codeStartIndex = remaining.indexOf("```");
+    if (codeStartIndex === -1) {
+      result.push({ type: "text", content: remaining });
+      break;
+    }
+
+    // Push text before code block
+    if (codeStartIndex > 0) {
+      result.push({ type: "text", content: remaining.slice(0, codeStartIndex) });
+    }
+
+    const afterStart = remaining.slice(codeStartIndex + 3);
+    const codeEndIndex = afterStart.indexOf("```");
+
+    if (codeEndIndex === -1) {
+      // In-progress streaming code block (renders instantly!)
+      const newlineIndex = afterStart.indexOf("\n");
+      let language = "code";
+      let code = afterStart;
+      if (newlineIndex !== -1) {
+        language = afterStart.slice(0, newlineIndex).trim() || "code";
+        code = afterStart.slice(newlineIndex + 1);
+      }
+      result.push({ type: "code", language, content: code });
+      break;
+    } else {
+      // Complete code block
+      const fullBlock = afterStart.slice(0, codeEndIndex);
+      const newlineIndex = fullBlock.indexOf("\n");
+      let language = "code";
+      let code = fullBlock;
+      if (newlineIndex !== -1) {
+        language = fullBlock.slice(0, newlineIndex).trim() || "code";
+        code = fullBlock.slice(newlineIndex + 1);
+      }
+      result.push({ type: "code", language, content: code });
+      remaining = afterStart.slice(codeEndIndex + 3);
+    }
+  }
+  return result;
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
   const { editMessageAndResend } = useChatStore();
@@ -82,21 +132,23 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const renderFormattedContent = (content: string) => {
     if (!content) return null;
 
-    // Split code blocks ```lang ... ```
-    const parts = content.split(/(```[\s\S]*?```)/g);
+    const sections = parseContentWithCodeBlocks(content);
 
-    return parts.map((part, index) => {
-      if (part.startsWith("```") && part.endsWith("```")) {
-        const lines = part.slice(3, -3).trim().split("\n");
-        const language = lines[0].trim();
-        const code = lines.slice(1).join("\n");
-        return <CodeBlock key={index} language={language} code={code} />;
+    return sections.map((section, sIdx) => {
+      if (section.type === "code") {
+        return (
+          <CodeBlock
+            key={sIdx}
+            language={section.language || "code"}
+            code={section.content}
+          />
+        );
       }
 
       // Regular text formatting (headings, lists, bold, blockquotes, tables)
-      const paragraphs = part.split("\n\n");
+      const paragraphs = section.content.split("\n\n");
       return (
-        <div key={index} className="space-y-3">
+        <div key={sIdx} className="space-y-3">
           {paragraphs.map((para, pIdx) => {
             const trimmed = para.trim();
             if (!trimmed) return null;
@@ -355,7 +407,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
         )}
 
-        {/* Formatted Content */}
+        {/* Formatted Content with Real-time CodeBlock Rendering */}
         <div className="prose-clean">
           {renderFormattedContent(message.content)}
         </div>
