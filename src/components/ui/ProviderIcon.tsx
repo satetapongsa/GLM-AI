@@ -22,68 +22,53 @@ export function ProviderIcon({
 
   const p = (provider || "").toLowerCase();
 
-  // 1. Anthropic / Claude (Official Terracotta Orange Starburst Asterisk)
+  // 1. Anthropic / Claude (Official Terracotta Orange 16-Ray Starburst Asterisk)
   if (p.includes("anthropic") || p.includes("claude")) {
     return (
       <div
         className={cn(
-          "bg-[#d97706]/15 text-[#f97316] border border-[#d97706]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#cc785c]/15 text-[#d97706] border border-[#cc785c]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
         title="Anthropic Claude"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#d97706]">
-          {/* Official Claude Multi-Ray Starburst Asterisk */}
-          <path d="M12 2a1 1 0 0 1 1 1v3.1a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1zm0 15.9a1 1 0 0 1 1 1V22a1 1 0 1 1-2 0v-3.1a1 1 0 0 1 1-1zm7.07-13.97a1 1 0 0 1 0 1.41l-2.19 2.2a1 1 0 1 1-1.41-1.42l2.19-2.19a1 1 0 0 1 1.41 0zm-11.31 11.32a1 1 0 0 1 0 1.41l-2.2 2.19a1 1 0 1 1-1.41-1.41l2.2-2.19a1 1 0 0 1 1.41 0zm14.24-4.25a1 1 0 0 1 0 2h-3.1a1 1 0 1 1 0-2h3.1zm-15.9 0a1 1 0 0 1 0 2H3a1 1 0 1 1 0-2h3.1zm12.97 7.07a1 1 0 0 1-1.41 0l-2.2-2.19a1 1 0 1 1 1.42-1.41l2.19 2.19a1 1 0 0 1 0 1.41zM6.34 6.34a1 1 0 0 1-1.41 0L2.74 4.15a1 1 0 1 1 1.41-1.41l2.19 2.19a1 1 0 0 1 0 1.41z" />
-          <circle cx="12" cy="12" r="3.5" fill="currentColor" />
+        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+          <g fill="#d97706">
+            <circle cx="12" cy="12" r="3.2" />
+            <path d="M12 1.5a1.2 1.2 0 0 1 1.2 1.2v3.6a1.2 1.2 0 0 1-2.4 0V2.7a1.2 1.2 0 0 1 1.2-1.2zm0 14a1.2 1.2 0 0 1 1.2 1.2v3.6a1.2 1.2 0 0 1-2.4 0v-3.6a1.2 1.2 0 0 1 1.2-1.2zM22.5 12a1.2 1.2 0 0 1-1.2 1.2h-3.6a1.2 1.2 0 0 1 0-2.4h3.6a1.2 1.2 0 0 1 1.2 1.2zM6.3 12a1.2 1.2 0 0 1-1.2 1.2H1.5a1.2 1.2 0 0 1 0-2.4h3.6a1.2 1.2 0 0 1 1.2 1.2z" />
+            <path d="M19.42 4.58a1.2 1.2 0 0 1 0 1.7l-2.55 2.54a1.2 1.2 0 1 1-1.7-1.7l2.55-2.54a1.2 1.2 0 0 1 1.7 0zm-9.9 9.9a1.2 1.2 0 0 1 0 1.7l-2.54 2.54a1.2 1.2 0 1 1-1.7-1.7l2.55-2.54a1.2 1.2 0 0 1 1.7 0zm9.9 4.94a1.2 1.2 0 0 1-1.7 0l-2.55-2.54a1.2 1.2 0 1 1 1.7-1.7l2.55 2.54a1.2 1.2 0 0 1 0 1.7zm-9.9-9.9a1.2 1.2 0 0 1-1.7 0L5.28 7.08a1.2 1.2 0 1 1 1.7-1.7l2.54 2.55a1.2 1.2 0 0 1 0 1.7z" />
+            <path d="M16.2 3.1a1.1 1.1 0 0 1 .8 1.4l-1.3 3.4a1.1 1.1 0 0 1-2.1-.8l1.3-3.4a1.1 1.1 0 0 1 1.3-.6zm-7 14.4a1.1 1.1 0 0 1 .8 1.4l-1.3 3.4a1.1 1.1 0 0 1-2.1-.8l1.3-3.4a1.1 1.1 0 0 1 1.3-.6zm11.7-1.3a1.1 1.1 0 0 1-1.4.8l-3.4-1.3a1.1 1.1 0 0 1 .8-2.1l3.4 1.3a1.1 1.1 0 0 1 .6 1.3zm-14.4-7a1.1 1.1 0 0 1-1.4.8l-3.4-1.3a1.1 1.1 0 0 1 .8-2.1l3.4 1.3a1.1 1.1 0 0 1 .6 1.3z" />
+          </g>
         </svg>
       </div>
     );
   }
 
-  // 2. OpenAI / ChatGPT (Official Spiral Rosette Logo)
+  // 2. OpenAI / ChatGPT (Official Spiral Rosette in Green & Dark)
   if (p.includes("openai") || p.includes("gpt")) {
     return (
       <div
         className={cn(
-          "bg-[#10a37f]/15 text-[#10a37f] border border-[#10a37f]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#10a37f]/15 text-[#10a37f] border border-[#10a37f]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
         title="OpenAI"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#10a37f]">
           <path d="M22.28 9.9a5.7 5.7 0 0 0-.48-4.7 5.78 5.78 0 0 0-4.04-2.82 5.86 5.86 0 0 0-5.1 1.25 5.73 5.73 0 0 0-4.14-.38 5.78 5.78 0 0 0-3.37 3.6 5.86 5.86 0 0 0-1.78 4.95 5.74 5.74 0 0 0 .48 4.7 5.78 5.78 0 0 0 4.04 2.82 5.86 5.86 0 0 0 5.1-1.25 5.73 5.73 0 0 0 4.14.38 5.78 5.78 0 0 0 3.37-3.6 5.86 5.86 0 0 0 1.78-4.95zm-9.03 9.47a3.86 3.86 0 0 1-2.58-.33l1.1-1.9a1.93 1.93 0 0 0 1.94.31l-.46 1.92zm-5.7-3.28a3.85 3.85 0 0 1-.98-2.42l2.19-.38a1.93 1.93 0 0 0 .97 1.71l-2.18 1.09zm-1.44-6.3a3.86 3.86 0 0 1 1.6-2.09l1.09 1.9a1.93 1.93 0 0 0-.97 1.71l-1.72-1.52zm8.7-3.28a3.86 3.86 0 0 1 2.58.33l-1.1 1.9a1.93 1.93 0 0 0-1.94-.31l.46-1.92zm5.7 3.28a3.85 3.85 0 0 1 .98 2.42l-2.19.38a1.93 1.93 0 0 0-.97-1.71l2.18-1.09zm1.44 6.3a3.86 3.86 0 0 1-1.6 2.09l-1.09-1.9a1.93 1.93 0 0 0 .97-1.71l1.72 1.52z" />
         </svg>
       </div>
     );
   }
 
-  // 3. DeepSeek (Official Whale Fin & Dynamic Wave Logo)
-  if (p.includes("deepseek")) {
-    return (
-      <div
-        className={cn(
-          "bg-[#0066ff]/15 text-[#38bdf8] border border-[#0066ff]/35 flex items-center justify-center shrink-0 shadow-2xs",
-          sizeClasses[size],
-          className
-        )}
-        title="DeepSeek"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#0066ff]">
-          <path d="M3.2 14.5c2.4-5.2 7.8-8.2 13.5-7.4 2.1.3 4.1 1.2 5.8 2.6-1.4 3.9-4.8 6.7-8.9 7.4-3.7.6-7.5-.6-10.4-2.6zm3.6-7.8c1.8-1.4 4.1-2.2 6.4-2.2 4.6 0 8.7 2.7 10.4 6.8-.9-1.1-2.1-1.9-3.5-2.4-4.2-1.6-8.9-.4-11.9 2.9-1.2 1.3-2.1 2.9-2.6 4.6-.2-3.8 2.1-7.8 5.2-9.7z" />
-        </svg>
-      </div>
-    );
-  }
-
-  // 4. Google / Gemini (Official 4-pointed Sparkle Gradient Star)
+  // 3. Google / Gemini (Official 4-Pointed Sparkle Star in Gradient)
   if (p.includes("google") || p.includes("gemini")) {
     return (
       <div
         className={cn(
-          "bg-[#1a73e8]/15 text-[#38bdf8] border border-[#1a73e8]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#1a73e8]/15 text-[#38bdf8] border border-[#1a73e8]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
@@ -92,12 +77,12 @@ export function ProviderIcon({
         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
           <path
             d="M12 2C12 7.52 7.52 12 2 12C7.52 12 12 16.48 12 22C12 16.48 16.48 12 22 12C16.48 12 12 7.52 12 2Z"
-            fill="url(#gemini-icon-grad)"
+            fill="url(#gemini-star-grad)"
           />
           <defs>
-            <linearGradient id="gemini-icon-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+            <linearGradient id="gemini-star-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
               <stop stopColor="#1a73e8" />
-              <stop offset="0.5" stopColor="#a855f7" />
+              <stop offset="0.45" stopColor="#a855f7" />
               <stop offset="1" stopColor="#ec4899" />
             </linearGradient>
           </defs>
@@ -106,12 +91,30 @@ export function ProviderIcon({
     );
   }
 
-  // 5. Flux / Black Forest Labs (Official Geometric Hex/Cube)
+  // 4. DeepSeek (Official Deep Blue Whale Fin Logo)
+  if (p.includes("deepseek")) {
+    return (
+      <div
+        className={cn(
+          "bg-[#0066ff]/15 text-[#38bdf8] border border-[#0066ff]/35 flex items-center justify-center shrink-0 shadow-xs",
+          sizeClasses[size],
+          className
+        )}
+        title="DeepSeek"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#0066ff]">
+          <path d="M2.5 12C2.5 6.753 6.753 2.5 12 2.5c3.218 0 6.072 1.6 7.788 4.053l-3.288 3.288A5.5 5.5 0 0 0 12 8a5.5 5.5 0 0 0-5.5 5.5c0 1.258.423 2.418 1.134 3.344l-3.447 3.447A9.458 9.458 0 0 1 2.5 12zm19 0c0 5.247-4.253 9.5-9.5 9.5a9.458 9.458 0 0 1-7.788-4.053l3.288-3.288A5.5 5.5 0 0 0 12 16a5.5 5.5 0 0 0 5.5-5.5c0-1.258-.423-2.418-1.134-3.344l3.447-3.447A9.458 9.458 0 0 1 21.5 12z" />
+        </svg>
+      </div>
+    );
+  }
+
+  // 5. Flux / Black Forest Labs (Official Neon Pink Hexagon Cube)
   if (p.includes("flux")) {
     return (
       <div
         className={cn(
-          "bg-[#ec4899]/15 text-[#f472b6] border border-[#ec4899]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#ec4899]/15 text-[#f472b6] border border-[#ec4899]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
@@ -124,12 +127,12 @@ export function ProviderIcon({
     );
   }
 
-  // 6. Sora / OpenAI Video (Official Aperture Cine Lens)
+  // 6. Sora / OpenAI Video (Official Aperture Iris Lens)
   if (p.includes("sora")) {
     return (
       <div
         className={cn(
-          "bg-[#ea580c]/15 text-[#fb923c] border border-[#ea580c]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#ea580c]/15 text-[#fb923c] border border-[#ea580c]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
@@ -147,7 +150,7 @@ export function ProviderIcon({
     return (
       <div
         className={cn(
-          "bg-[#8b5cf6]/15 text-[#a78bfa] border border-[#8b5cf6]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#8b5cf6]/15 text-[#a78bfa] border border-[#8b5cf6]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
@@ -165,7 +168,7 @@ export function ProviderIcon({
     return (
       <div
         className={cn(
-          "bg-[#0081fb]/15 text-[#60a5fa] border border-[#0081fb]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#0081fb]/15 text-[#60a5fa] border border-[#0081fb]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
@@ -183,7 +186,7 @@ export function ProviderIcon({
     return (
       <div
         className={cn(
-          "bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30 flex items-center justify-center shrink-0 shadow-2xs",
+          "bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30 flex items-center justify-center shrink-0 shadow-xs",
           sizeClasses[size],
           className
         )}
@@ -201,7 +204,7 @@ export function ProviderIcon({
     return (
       <div
         className={cn(
-          "bg-white/10 text-white border border-white/20 flex items-center justify-center shrink-0 shadow-2xs font-mono font-black",
+          "bg-white/10 text-white border border-white/20 flex items-center justify-center shrink-0 shadow-xs font-mono font-black",
           sizeClasses[size],
           className
         )}
@@ -216,7 +219,7 @@ export function ProviderIcon({
   return (
     <div
       className={cn(
-        "bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-2xs",
+        "bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-xs",
         sizeClasses[size],
         className
       )}
