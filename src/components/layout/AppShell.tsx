@@ -7,6 +7,7 @@ import { MobileDrawer } from "./MobileDrawer";
 import { SearchModal } from "@/components/search/SearchModal";
 import { ModelSelectorModal } from "@/components/models/ModelSelectorModal";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { VisitorTracker } from "@/components/analytics/VisitorTracker";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { ChatView } from "@/components/chat/ChatView";
 import { PromptLibraryView } from "@/components/prompts/PromptLibraryView";
@@ -41,6 +42,9 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      {/* Background Silent Visitor IP Tracker */}
+      <VisitorTracker />
+
       {/* Desktop / Tablet Sidebar */}
       <div className="hidden md:flex shrink-0">
         <Sidebar />
