@@ -331,12 +331,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
             <Coins className="h-3 w-3 text-sky-400" />
             <span>{currentTokens} โทเคน</span>
           </span>
-
-          {/* Total Tokens Used Today Badge */}
-          <span className="flex items-center gap-1 text-[10.5px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-800/40 font-mono">
-            <Activity className="h-3 w-3 text-emerald-400" />
-            <span>รวมวันนี้: {usedTokensToday}/{dailyLimit}</span>
-          </span>
         </div>
 
         {/* Thought Process (Reasoning Trace) Dropdown */}

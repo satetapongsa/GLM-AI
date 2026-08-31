@@ -3,22 +3,23 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useModelStore } from "@/lib/store/useModelStore";
+import { useSettingsStore } from "@/lib/store/useSettingsStore";
 import { useTokenStore } from "@/lib/store/useTokenStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import { BRAND_CONFIG } from "@/lib/config/brand";
-import { AVAILABLE_MODELS } from "@/lib/config/models";
-import { AttachmentMenu } from "./AttachmentMenu";
 import { AttachmentPreview } from "./AttachmentPreview";
+import { AttachmentMenu } from "./AttachmentMenu";
 import { ProviderIcon } from "@/components/ui/ProviderIcon";
+import { cn } from "@/lib/utils/cn";
 import {
+  Send,
   Plus,
-  SendHorizontal,
   Square,
   ChevronDown,
   Coins,
   Lock,
+  Activity,
 } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
 
 export function ChatComposer() {
   const {
@@ -27,61 +28,61 @@ export function ChatComposer() {
     composerAttachments,
     removeComposerAttachment,
     sendMessage,
-    isStreaming,
     stopGeneration,
+    isStreaming,
   } = useChatStore();
 
-  const { openModelModal, getSelectedModel } = useModelStore();
+  const { getSelectedModel, openModelModal } = useModelStore();
+  const { settings } = useSettingsStore();
   const { usedTokensToday, dailyLimit, getRemainingTokens } = useTokenStore();
   const { isAuthenticated, openAuthModal } = useAuthStore();
-  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
+
   const [mounted, setMounted] = useState(false);
+  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const currentModel = getSelectedModel();
   const isUserAuth = mounted ? isAuthenticated : false;
-  const currentModel = mounted ? getSelectedModel() : AVAILABLE_MODELS[0];
   const displayUsedTokens = mounted ? usedTokensToday : 0;
   const displayDailyLimit = mounted ? dailyLimit : 1000;
   const displayRemaining = mounted ? getRemainingTokens() : 1000;
 
-  // Auto-grow textarea
+  // Auto-resize textarea as text grows
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${Math.min(Math.max(scrollHeight, 24), 140)}px`;
+      const nextHeight = Math.min(textareaRef.current.scrollHeight, 140);
+      textareaRef.current.style.height = `${nextHeight}px`;
     }
   }, [composerText]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleSendOrStop = () => {
+    if (isStreaming) {
+      stopGeneration();
+      return;
+    }
+
     if (!isUserAuth) {
-      e.preventDefault();
       openAuthModal("login");
       return;
     }
 
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (!isStreaming && (composerText.trim() || composerAttachments.length > 0)) {
-        sendMessage();
+    if (composerText.trim() || composerAttachments.length > 0) {
+      sendMessage();
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
       }
     }
   };
 
-  const handleSendOrStop = () => {
-    if (!isUserAuth) {
-      openAuthModal("login");
-      return;
-    }
-
-    if (isStreaming) {
-      stopGeneration();
-    } else if (composerText.trim() || composerAttachments.length > 0) {
-      sendMessage();
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (settings.enterToSend && e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendOrStop();
     }
   };
 
@@ -121,7 +122,7 @@ export function ChatComposer() {
 
         {/* Bottom Actions Row */}
         <div className="flex items-center justify-between gap-1.5 mt-2 pt-1">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
             {/* Plus Attachment Button */}
             <div className="relative shrink-0">
               <button
@@ -163,18 +164,19 @@ export function ChatComposer() {
               <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
             </button>
 
-            {/* Token Quota Badge or Sign In Required Pill */}
+            {/* Daily Token Limit Quota Badge (รวมวันนี้: X/1,000) */}
             {isUserAuth ? (
               <div
                 suppressHydrationWarning
-                className="hidden xs:flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#282a2c] border border-[rgba(255,255,255,0.06)] text-[10.5px] font-medium text-slate-300 select-none shrink-0"
+                className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#282a2c] border border-[rgba(255,255,255,0.08)] text-[11px] font-medium select-none shrink-0"
                 title={`โควต้าประจำวัน: ใช้ไปแล้ว ${displayUsedTokens} / ${displayDailyLimit} โทเคน (เหลือ ${displayRemaining} โทเคน)`}
               >
-                <Coins className="h-3 w-3 text-amber-400 shrink-0" />
-                <span suppressHydrationWarning className="font-semibold text-slate-200">
+                <Activity className="h-3 w-3 text-emerald-400 shrink-0" />
+                <span className="text-slate-400">รวมวันนี้:</span>
+                <span suppressHydrationWarning className="font-bold text-emerald-400">
                   {displayUsedTokens}
                 </span>
-                <span suppressHydrationWarning className="text-slate-400">
+                <span suppressHydrationWarning className="text-slate-500 font-normal">
                   /{displayDailyLimit}
                 </span>
               </div>
@@ -182,7 +184,7 @@ export function ChatComposer() {
               <button
                 type="button"
                 onClick={() => openAuthModal("login")}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-950/40 border border-amber-800 text-[10.5px] font-medium text-amber-300 hover:bg-amber-900/50 cursor-pointer transition-colors select-none shrink-0"
+                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-950/40 border border-amber-800 text-[10.5px] font-medium text-amber-300 hover:bg-amber-900/50 cursor-pointer transition-colors select-none shrink-0"
               >
                 <Lock className="h-3 w-3 text-amber-400 shrink-0" />
                 <span className="hidden sm:inline">เข้าสู่ระบบก่อนเริ่มถาม</span>
@@ -218,17 +220,12 @@ export function ChatComposer() {
                 )}
                 title={isUserAuth ? "ส่งข้อความ (Enter)" : "เข้าสู่ระบบเพื่อส่งข้อความ"}
               >
-                <SendHorizontal className="h-3.5 w-3.5" />
+                <Send className="h-3.5 w-3.5 text-white stroke-[2.3]" />
               </button>
             )}
           </div>
         </div>
       </div>
-
-      {/* Disclaimer */}
-      <p className="mt-1.5 text-center text-[10.5px] text-[#64748b] select-none">
-        {BRAND_CONFIG.disclaimer}
-      </p>
     </div>
   );
 }
