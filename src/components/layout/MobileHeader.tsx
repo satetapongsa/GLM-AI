@@ -12,7 +12,7 @@ export function MobileHeader() {
 
   return (
     <header className="md:hidden flex items-center justify-between px-3 h-14 border-b border-[rgba(255,255,255,0.08)] bg-[#1e1f20] text-[#f1f5f9] shrink-0 z-20">
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2">
         <button
           onClick={toggleMobileDrawer}
           aria-label="เปิดเมนู"
@@ -20,7 +20,7 @@ export function MobileHeader() {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <BrandLogo size="sm" showBadge={false} showSubtext={false} />
+        <BrandLogo size="sm" showBadge={true} showSubtext={false} />
       </div>
 
       <div className="flex items-center gap-1.5">
