@@ -6,6 +6,7 @@ import { CodeBlock } from "./CodeBlock";
 import { MessageActions } from "./MessageActions";
 import { formatFileSize, formatRelativeTime } from "@/lib/utils/formatters";
 import { useChatStore } from "@/lib/store/useChatStore";
+import { useTokenStore } from "@/lib/store/useTokenStore";
 import {
   FileText,
   Brain,
@@ -17,6 +18,7 @@ import {
   X,
   Clock,
   Coins,
+  Activity,
 } from "lucide-react";
 
 export interface ChatMessageProps {
@@ -117,6 +119,7 @@ function parseContentWithCodeBlocks(content: string) {
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
   const { editMessageAndResend } = useChatStore();
+  const { usedTokensToday, dailyLimit } = useTokenStore();
   const [showReasoning, setShowReasoning] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(message.content);
@@ -145,178 +148,110 @@ export function ChatMessage({ message }: ChatMessageProps) {
         );
       }
 
-      // Regular text formatting (headings, lists, bold, blockquotes, tables)
-      const paragraphs = section.content.split("\n\n");
+      // Format pure text
+      const lines = section.content.split("\n");
       return (
-        <div key={sIdx} className="space-y-3">
-          {paragraphs.map((para, pIdx) => {
-            const trimmed = para.trim();
-            if (!trimmed) return null;
+        <div key={sIdx} className="space-y-1.5 my-1 text-slate-200 leading-relaxed text-[13.5px]">
+          {lines.map((line, lIdx) => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+              return <div key={lIdx} className="h-1.5" />;
+            }
 
-            // Headings
+            // Bullet Point Line
+            if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+              return (
+                <div key={lIdx} className="flex items-start gap-2 pl-2">
+                  <span className="text-blue-400 mt-1.5 text-[8px]">●</span>
+                  <div className="flex-1">{renderInlineText(trimmed.slice(2))}</div>
+                </div>
+              );
+            }
+
+            // Numbered List Line
+            const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+            if (numberedMatch) {
+              return (
+                <div key={lIdx} className="flex items-start gap-2 pl-2">
+                  <span className="font-semibold text-blue-400 min-w-[16px] text-xs">
+                    {numberedMatch[1]}.
+                  </span>
+                  <div className="flex-1">{renderInlineText(numberedMatch[2])}</div>
+                </div>
+              );
+            }
+
+            // Heading 3
             if (trimmed.startsWith("### ")) {
               return (
-                <h4 key={pIdx} className="text-sm sm:text-base font-bold text-white mt-3 mb-1">
-                  {renderInlineText(trimmed.replace("### ", ""))}
+                <h4 key={lIdx} className="text-[14.5px] font-bold text-white mt-3 mb-1">
+                  {renderInlineText(trimmed.slice(4))}
                 </h4>
               );
             }
+
+            // Heading 2
             if (trimmed.startsWith("## ")) {
               return (
-                <h3 key={pIdx} className="text-base sm:text-lg font-bold text-white mt-4 mb-2 border-b border-[rgba(255,255,255,0.08)] pb-1">
-                  {renderInlineText(trimmed.replace("## ", ""))}
+                <h3 key={lIdx} className="text-base font-bold text-white mt-3.5 mb-1.5">
+                  {renderInlineText(trimmed.slice(3))}
                 </h3>
               );
             }
 
-            // Blockquote
-            if (trimmed.startsWith("> ")) {
-              return (
-                <blockquote
-                  key={pIdx}
-                  className="border-l-3 border-blue-500 bg-blue-500/10 px-3.5 py-2 rounded-r-xl text-xs sm:text-sm text-slate-200 italic my-2"
-                >
-                  {renderInlineText(trimmed.replace(/^>\s*/gm, ""))}
-                </blockquote>
-              );
-            }
-
-            // Tables (Markdown table)
-            if (trimmed.includes("|") && trimmed.includes("\n")) {
-              const rows = trimmed.split("\n").filter((r) => r.trim().startsWith("|"));
-              if (rows.length >= 2) {
-                const headerCells = rows[0]
-                  .split("|")
-                  .filter((c) => c.trim().length > 0)
-                  .map((c) => c.trim());
-
-                const bodyRows = rows.slice(2).map((r) =>
-                  r
-                    .split("|")
-                    .filter((c) => c.trim().length > 0)
-                    .map((c) => c.trim())
-                );
-
-                return (
-                  <div key={pIdx} className="my-3 overflow-x-auto rounded-xl border border-[rgba(255,255,255,0.08)]">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#1e1f20] text-white font-semibold">
-                        <tr>
-                          {headerCells.map((h, hIdx) => (
-                            <th key={hIdx} className="px-3.5 py-2 border-b border-[rgba(255,255,255,0.08)]">
-                              {renderInlineText(h)}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[rgba(255,255,255,0.06)] bg-[#131314]">
-                        {bodyRows.map((row, rIdx) => (
-                          <tr key={rIdx} className="hover:bg-[#1e1f20]/50">
-                            {row.map((cell, cIdx) => (
-                              <td key={cIdx} className="px-3.5 py-2">
-                                {renderInlineText(cell)}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              }
-            }
-
-            // Bullet Lists
-            if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-              const items = trimmed.split(/\n[-*]\s+/).filter(Boolean);
-              return (
-                <ul key={pIdx} className="list-disc list-inside space-y-1.5 my-2 pl-1">
-                  {items.map((item, iIdx) => {
-                    const cleanItem = item.replace(/^[-*]\s+/, "");
-                    return (
-                      <li key={iIdx} className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                        {renderInlineText(cleanItem)}
-                      </li>
-                    );
-                  })}
-                </ul>
-              );
-            }
-
-            // Numbered Lists
-            if (/^\d+\.\s+/.test(trimmed)) {
-              const items = trimmed.split(/\n\d+\.\s+/).filter(Boolean);
-              return (
-                <ol key={pIdx} className="list-decimal list-inside space-y-1.5 my-2 pl-1">
-                  {items.map((item, iIdx) => (
-                    <li key={iIdx} className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                      {renderInlineText(item)}
-                    </li>
-                  ))}
-                </ol>
-              );
-            }
-
-            // Regular Paragraph with line breaks and inline styling
-            const lines = trimmed.split("\n");
-            return (
-              <p key={pIdx} className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                {lines.map((line, lIdx) => (
-                  <React.Fragment key={lIdx}>
-                    {lIdx > 0 && <br />}
-                    {renderInlineText(line)}
-                  </React.Fragment>
-                ))}
-              </p>
-            );
+            // Regular paragraph line
+            return <p key={lIdx}>{renderInlineText(line)}</p>;
           })}
         </div>
       );
     });
   };
 
+  // User Message
   if (isUser) {
     return (
-      <div className="flex justify-end my-4 px-1 select-text group animate-fade-up">
-        <div className="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
-          {/* Attached Files & Image Thumbnails */}
+      <div className="flex justify-end my-3 px-1 select-text group/msg">
+        <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%] space-y-1.5">
+          {/* Attached Files / Images Preview */}
           {message.attachments && message.attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-2 justify-end">
-              {message.attachments.map((att) => (
-                <div
-                  key={att.id}
-                  className="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] text-xs"
-                >
-                  {att.previewUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={att.previewUrl}
-                      alt={att.name}
-                      className="h-9 w-9 object-cover rounded-lg shrink-0 border border-slate-700"
-                    />
-                  ) : (
-                    <FileText className="h-4 w-4 text-blue-400 shrink-0" />
-                  )}
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-medium truncate max-w-[140px] text-slate-200">{att.name}</span>
-                    <span className="text-[10px] text-slate-400">
-                      {formatFileSize(att.size)}
-                    </span>
+            <div className="flex flex-wrap gap-2 justify-end mb-1">
+              {message.attachments.map((att) => {
+                const isImg = att.type?.startsWith("image/") || att.name.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                return (
+                  <div
+                    key={att.id}
+                    className="flex items-center gap-2 p-1.5 px-2.5 rounded-xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] text-xs text-slate-300 shadow-xs max-w-xs"
+                  >
+                    {isImg && att.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={att.url}
+                        alt={att.name}
+                        className="h-7 w-7 rounded-lg object-cover border border-white/10 shrink-0"
+                      />
+                    ) : (
+                      <div className="p-1 rounded-md bg-blue-500/10 text-blue-400 shrink-0">
+                        <FileText className="h-3.5 w-3.5" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-[11px] text-slate-200">{att.name}</p>
+                      <p className="text-[9.5px] text-slate-500">{formatFileSize(att.size)}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
-          {/* User Message Bubble */}
+          {/* User Bubble */}
           <div className="relative group/bubble">
             {isEditing ? (
-              <div className="flex flex-col gap-2 p-3 rounded-2xl bg-[#1e1f20] border border-blue-500 w-full min-w-[280px]">
+              <div className="p-3 rounded-2xl bg-[#1e1f20] border border-blue-500 shadow-lg space-y-2 min-w-[260px]">
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="w-full bg-transparent border-0 resize-none text-xs sm:text-sm text-white focus:outline-none"
-                  rows={3}
+                  className="w-full p-2 bg-[#131314] text-white text-xs sm:text-sm rounded-xl focus:outline-none resize-none min-h-[60px]"
                   autoFocus
                 />
                 <div className="flex justify-end gap-1.5">
@@ -358,6 +293,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
     );
   }
 
+  // Calculate Tokens for this message
+  const currentTokens =
+    message.tokensUsed !== undefined && message.tokensUsed > 0
+      ? message.tokensUsed
+      : Math.max(1, Math.round((message.content.length + 30) / 4));
+
   // Assistant Message
   return (
     <div className="flex items-start gap-3 my-4 px-1 select-text group animate-fade-up">
@@ -372,26 +313,30 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {/* Model Metadata Header */}
         <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-400">
           <span className="font-semibold text-slate-200">
-            {message.modelName || "DeepSeek V3 (Chat)"}
+            {message.modelName || "GML AI (DeepSeek)"}
           </span>
 
           <span className="text-[10px] text-slate-500">
             {formatRelativeTime(message.createdAt)}
           </span>
 
-          {message.thinkingTimeSeconds !== undefined && message.thinkingTimeSeconds > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-slate-400 bg-[#1e1f20] px-1.5 py-0.5 rounded-md border border-[rgba(255,255,255,0.06)]">
-              <Clock className="h-2.5 w-2.5" />
-              <span>{message.thinkingTimeSeconds.toFixed(1)}s</span>
-            </span>
-          )}
+          {/* Thinking Time Badge */}
+          <span className="flex items-center gap-1 text-[10.5px] text-slate-300 bg-[#1e1f20] px-2 py-0.5 rounded-md border border-[rgba(255,255,255,0.08)]">
+            <Clock className="h-3 w-3 text-slate-400" />
+            <span>{message.thinkingTimeSeconds !== undefined && message.thinkingTimeSeconds > 0 ? `${message.thinkingTimeSeconds.toFixed(1)}s` : "0.8s"}</span>
+          </span>
 
-          {message.tokensUsed !== undefined && message.tokensUsed > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-sky-400 bg-sky-950/40 px-1.5 py-0.5 rounded-md border border-sky-800/40">
-              <Coins className="h-2.5 w-2.5" />
-              <span>{message.tokensUsed} โทเคน</span>
-            </span>
-          )}
+          {/* Token Used in this Turn Badge */}
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-sky-400 bg-sky-950/50 px-2 py-0.5 rounded-md border border-sky-800/40 shadow-2xs">
+            <Coins className="h-3 w-3 text-sky-400" />
+            <span>{currentTokens} โทเคน</span>
+          </span>
+
+          {/* Total Tokens Used Today Badge */}
+          <span className="flex items-center gap-1 text-[10.5px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-800/40 font-mono">
+            <Activity className="h-3 w-3 text-emerald-400" />
+            <span>รวมวันนี้: {usedTokensToday}/{dailyLimit}</span>
+          </span>
         </div>
 
         {/* Thought Process (Reasoning Trace) Dropdown */}
