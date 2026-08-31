@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useFileStore } from "@/lib/store/useFileStore";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import { FileItem } from "@/lib/types";
 import { FileCard } from "./FileCard";
 import { FileUploadModal } from "./FileUploadModal";
 import { Button } from "@/components/ui/Button";
-import { Search, Plus, FolderArchive, UploadCloud } from "lucide-react";
+import { Search, Plus, FolderArchive, UploadCloud, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const FILE_TYPES: { id: FileItem["type"] | "all"; label: string }[] = [
@@ -18,8 +19,13 @@ const FILE_TYPES: { id: FileItem["type"] | "all"; label: string }[] = [
 ];
 
 export function FileLibraryView() {
-  const { files, filterType, setFilterType, searchQuery, setSearchQuery } = useFileStore();
+  const { files, filterType, setFilterType, searchQuery, setSearchQuery, fetchFilesFromDb, isLoading } = useFileStore();
+  const { user } = useAuthStore();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchFilesFromDb(user?.email);
+  }, [user?.email]);
 
   const filteredFiles = useMemo(() => {
     return files.filter((f) => {
@@ -28,7 +34,7 @@ export function FileLibraryView() {
       const matchesSearch =
         !q ||
         f.name.toLowerCase().includes(q) ||
-        f.tags.some((t) => t.toLowerCase().includes(q));
+        (f.tags && f.tags.some((t) => t.toLowerCase().includes(q)));
 
       return matchesType && matchesSearch;
     });
@@ -37,40 +43,54 @@ export function FileLibraryView() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[hsl(var(--border))]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.08)]">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
             <FolderArchive className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#f1f5f9]">
               คลังไฟล์ความรู้ (File & Knowledge Library)
             </h2>
-            <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))]">
-              จัดการไฟล์เอกสาร โค้ด และสื่อต่างๆ เพื่อใช้เป็นบริบทความรู้สำหรับ AI
+            <p className="text-xs sm:text-sm text-[#94a3b8]">
+              ไฟล์เอกสาร โค้ด และสื่อทั้งหมดจะถูกบันทึกและซิงค์ลง Neon PostgreSQL Database อย่างปลอดภัย
             </p>
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => setIsUploadModalOpen(true)}
-          leftIcon={<Plus className="h-4 w-4" />}
-        >
-          อัปโหลดไฟล์
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchFilesFromDb(user?.email)}
+            disabled={isLoading}
+            leftIcon={<RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin text-blue-400")} />}
+          >
+            รีเฟรชไฟล์
+          </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsUploadModalOpen(true)}
+            leftIcon={<Plus className="h-4 w-4" />}
+            className="bg-[#0b57d0] hover:bg-[#0842a0] text-white"
+          >
+            อัปโหลดไฟล์
+          </Button>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
       <div className="space-y-3 my-6">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="ค้นหาไฟล์ตามชื่อ หรือแท็ก..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[hsl(var(--muted))] border border-[hsl(var(--border))] text-xs text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] text-xs text-[#f1f5f9] placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -85,8 +105,8 @@ export function FileLibraryView() {
                 className={cn(
                   "px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer select-none shrink-0",
                   isActive
-                    ? "bg-[hsl(var(--primary))] text-white shadow-xs font-semibold"
-                    : "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))]"
+                    ? "bg-[#0b57d0] text-white shadow-xs font-semibold"
+                    : "bg-[#1e1f20] text-slate-300 hover:text-white hover:bg-[#282a2c]"
                 )}
               >
                 {t.label}
@@ -97,16 +117,23 @@ export function FileLibraryView() {
       </div>
 
       {/* Files Grid */}
-      {filteredFiles.length === 0 ? (
+      {isLoading ? (
+        <div className="flex-1 flex flex-col items-center justify-center py-20 text-center animate-pulse">
+          <div className="p-4 rounded-full bg-[#1e1f20] text-slate-400 mb-3">
+            <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
+          </div>
+          <p className="text-xs text-slate-400">กำลังโหลดไฟล์จาก Neon PostgreSQL Database...</p>
+        </div>
+      ) : filteredFiles.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 rounded-full bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] mb-3">
+          <div className="p-4 rounded-full bg-[#1e1f20] text-slate-400 mb-3">
             <UploadCloud className="h-8 w-8" />
           </div>
-          <h4 className="text-sm font-semibold text-[hsl(var(--foreground))]">
-            ยังไม่มีไฟล์ในคลัง
+          <h4 className="text-sm font-semibold text-[#f1f5f9]">
+            ยังไม่มีไฟล์ในคลัง Neon Database
           </h4>
-          <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 max-w-sm">
-            อัปโหลดเอกสาร PDF, รูปภาพ หรือไฟล์โค้ด เพื่อให้ AI ช่วยอ่าน สรุป และตอบคำถาม
+          <p className="text-xs text-slate-400 mt-1 max-w-sm">
+            อัปโหลดเอกสาร PDF, รูปภาพ หรือไฟล์โค้ด เพื่อบันทึกเข้าสู่ Neon Database และให้ AI ช่วยอ่าน
           </p>
           <Button
             variant="outline"

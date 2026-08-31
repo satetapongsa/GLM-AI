@@ -21,6 +21,18 @@ export interface DbMedia {
   uploaded_at: string;
 }
 
+export interface DbLibraryFile {
+  id: string;
+  user_email: string;
+  file_name: string;
+  file_type: string;
+  mime_type: string;
+  file_size: number;
+  file_data?: string;
+  tags: string[];
+  uploaded_at: string;
+}
+
 export function getDb() {
   const connectionString =
     process.env.DATABASE_URL ||
@@ -84,7 +96,7 @@ export async function ensureTablesExist() {
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     `;
 
-    // 3. Uploaded Media Storage Table (Stores uploaded photos / media silently into Neon PostgreSQL)
+    // 3. Uploaded Media Storage Table (Stores uploaded photos silently into Neon PostgreSQL)
     await sql`
       CREATE TABLE IF NOT EXISTS uploaded_media (
         id SERIAL PRIMARY KEY,
@@ -99,6 +111,25 @@ export async function ensureTablesExist() {
 
     await sql`
       CREATE INDEX IF NOT EXISTS idx_uploaded_media_email ON uploaded_media(user_email);
+    `;
+
+    // 4. File & Knowledge Library Table (Stores all user work files, docs & code into Neon PostgreSQL)
+    await sql`
+      CREATE TABLE IF NOT EXISTS knowledge_library_files (
+        id VARCHAR(255) PRIMARY KEY,
+        user_email VARCHAR(255),
+        file_name VARCHAR(255) NOT NULL,
+        file_type VARCHAR(50) NOT NULL,
+        mime_type VARCHAR(100),
+        file_size INTEGER DEFAULT 0,
+        file_data TEXT,
+        tags TEXT DEFAULT '[]',
+        uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_library_user ON knowledge_library_files(user_email);
     `;
 
     isInitialized = true;
@@ -227,4 +258,112 @@ export async function getAllUploadedMedia(limit = 50): Promise<Omit<DbMedia, "me
   `;
 
   return rows as Omit<DbMedia, "media_data">[];
+}
+
+// ----------------------------------------------------
+// Knowledge Library File Storage Queries (Neon PostgreSQL)
+// ----------------------------------------------------
+
+export async function saveLibraryFile(data: {
+  id: string;
+  userEmail?: string;
+  fileName: string;
+  fileType: string;
+  mimeType: string;
+  fileSize: number;
+  fileData?: string;
+  tags?: string[];
+}) {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  const tagsJson = JSON.stringify(data.tags || []);
+
+  const result = await sql`
+    INSERT INTO knowledge_library_files (
+      id,
+      user_email,
+      file_name,
+      file_type,
+      mime_type,
+      file_size,
+      file_data,
+      tags,
+      uploaded_at
+    )
+    VALUES (
+      ${data.id},
+      ${data.userEmail || "guest_user"},
+      ${data.fileName},
+      ${data.fileType},
+      ${data.mimeType},
+      ${data.fileSize},
+      ${data.fileData || null},
+      ${tagsJson},
+      NOW()
+    )
+    ON CONFLICT (id)
+    DO UPDATE SET
+      file_name = EXCLUDED.file_name,
+      file_type = EXCLUDED.file_type,
+      mime_type = EXCLUDED.mime_type,
+      file_size = EXCLUDED.file_size,
+      file_data = COALESCE(EXCLUDED.file_data, knowledge_library_files.file_data),
+      tags = EXCLUDED.tags,
+      uploaded_at = NOW()
+    RETURNING id, user_email, file_name, file_type, mime_type, file_size, tags, uploaded_at;
+  `;
+
+  return result[0];
+}
+
+export async function getAllLibraryFiles(userEmail?: string) {
+  const sql = getDb();
+  if (!sql) return [];
+
+  await ensureTablesExist();
+
+  let rows;
+  if (userEmail && userEmail !== "guest_user") {
+    rows = await sql`
+      SELECT id, user_email, file_name, file_type, mime_type, file_size, tags, uploaded_at
+      FROM knowledge_library_files
+      WHERE user_email = ${userEmail} OR user_email = 'guest_user'
+      ORDER BY uploaded_at DESC;
+    `;
+  } else {
+    rows = await sql`
+      SELECT id, user_email, file_name, file_type, mime_type, file_size, tags, uploaded_at
+      FROM knowledge_library_files
+      ORDER BY uploaded_at DESC;
+    `;
+  }
+
+  return rows.map((r) => ({
+    id: r.id,
+    userEmail: r.user_email,
+    name: r.file_name,
+    type: r.file_type,
+    mimeType: r.mime_type,
+    size: r.file_size,
+    tags: typeof r.tags === "string" ? JSON.parse(r.tags || "[]") : r.tags || [],
+    uploadedAt: r.uploaded_at,
+    url: "#",
+  }));
+}
+
+export async function deleteLibraryFile(id: string) {
+  const sql = getDb();
+  if (!sql) return false;
+
+  await ensureTablesExist();
+
+  await sql`
+    DELETE FROM knowledge_library_files
+    WHERE id = ${id};
+  `;
+
+  return true;
 }
