@@ -6,7 +6,6 @@ import {
   UploadCloud,
   Image as ImageIcon,
   FileText,
-  Camera,
   ClipboardList,
 } from "lucide-react";
 import { Attachment } from "@/lib/types";
@@ -23,7 +22,7 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
 
   if (!isOpen) return null;
 
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "file" | "image" | "doc"
   ) => {
@@ -32,11 +31,39 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+
+      // Read text content for code/document/text files so AI can actually read and analyze it!
+      let textContent: string | undefined = undefined;
+      const isTextOrCode =
+        file.type.startsWith("text/") ||
+        file.name.endsWith(".txt") ||
+        file.name.endsWith(".js") ||
+        file.name.endsWith(".ts") ||
+        file.name.endsWith(".tsx") ||
+        file.name.endsWith(".jsx") ||
+        file.name.endsWith(".py") ||
+        file.name.endsWith(".json") ||
+        file.name.endsWith(".html") ||
+        file.name.endsWith(".css") ||
+        file.name.endsWith(".md") ||
+        file.name.endsWith(".sql") ||
+        file.name.endsWith(".csv");
+
+      if (isTextOrCode && file.size < 500000) {
+        // Less than 500KB text
+        try {
+          textContent = await file.text();
+        } catch {
+          // ignore
+        }
+      }
+
       const newAttachment: Attachment = {
         id: `att-${Date.now()}-${i}`,
         name: file.name,
         type: file.type || (type === "image" ? "image/jpeg" : "application/octet-stream"),
         size: file.size,
+        content: textContent,
         status: "complete",
         previewUrl: type === "image" ? URL.createObjectURL(file) : undefined,
       };
@@ -51,9 +78,10 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
       if (text) {
         addComposerAttachment({
           id: `att-snippet-${Date.now()}`,
-          name: `Code_Snippet_${new Date().toLocaleTimeString("th-TH").replace(/:/g, "")}.ts`,
+          name: `Snippet_${new Date().toLocaleTimeString("th-TH").replace(/:/g, "")}.txt`,
           type: "text/plain",
           size: new Blob([text]).size,
+          content: text,
           status: "complete",
         });
       }
@@ -90,40 +118,40 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
       />
 
       {/* Popover Menu */}
-      <div className="absolute left-0 bottom-full mb-3 z-50 w-56 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150 text-xs">
+      <div className="absolute left-0 bottom-full mb-3 z-50 w-56 rounded-2xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150 text-xs text-[#f1f5f9]">
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors text-left cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-[#282a2c] transition-colors text-left cursor-pointer"
         >
-          <UploadCloud className="h-4 w-4 text-blue-500" />
-          <span>อัปโหลดไฟล์ (Upload File)</span>
+          <UploadCloud className="h-4 w-4 text-blue-400" />
+          <span>อัปโหลดไฟล์ (Code, TXT, JSON)</span>
         </button>
 
         <button
           type="button"
           onClick={() => imageInputRef.current?.click()}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors text-left cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-[#282a2c] transition-colors text-left cursor-pointer"
         >
-          <ImageIcon className="h-4 w-4 text-emerald-500" />
+          <ImageIcon className="h-4 w-4 text-emerald-400" />
           <span>อัปโหลดรูปภาพ (Image)</span>
         </button>
 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors text-left cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-[#282a2c] transition-colors text-left cursor-pointer"
         >
-          <FileText className="h-4 w-4 text-amber-500" />
-          <span>แนบเอกสาร (PDF, Doc)</span>
+          <FileText className="h-4 w-4 text-amber-400" />
+          <span>แนบเอกสาร (Doc, Data)</span>
         </button>
 
         <button
           type="button"
           onClick={handlePasteSnippet}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors text-left cursor-pointer border-t border-[hsl(var(--border))] mt-1 pt-1.5"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-[#282a2c] transition-colors text-left cursor-pointer border-t border-[rgba(255,255,255,0.08)] mt-1 pt-1.5"
         >
-          <ClipboardList className="h-4 w-4 text-violet-500" />
+          <ClipboardList className="h-4 w-4 text-purple-400" />
           <span>วางโค้ดจากคลิปบอร์ด</span>
         </button>
       </div>

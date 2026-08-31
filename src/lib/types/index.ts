@@ -9,6 +9,7 @@ export interface Attachment {
   size: number;
   url?: string;
   previewUrl?: string;
+  content?: string;
   status: "uploading" | "complete" | "error";
   progress?: number;
 }

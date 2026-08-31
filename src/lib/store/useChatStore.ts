@@ -205,12 +205,25 @@ export const useChatStore = create<ChatState>()(
             .filter((m) => m.id !== assistantMessageId)
             .map((m) => ({ role: m.role, content: m.content }));
 
+          // Construct enriched prompt with attached file contents
+          let fullPrompt = promptText;
+          if (attachments && attachments.length > 0) {
+            const fileContexts = attachments
+              .filter((a) => a.content)
+              .map((a) => `[ไฟล์แนบ: ${a.name}]\n\`\`\`\n${a.content}\n\`\`\``)
+              .join("\n\n");
+
+            if (fileContexts) {
+              fullPrompt = `${fileContexts}\n\n[คำถาม/คำสั่งของผู้ใช้]:\n${promptText || "ช่วยอ่าน วิเคราะห์ หรืออธิบายไฟล์แนบนี้ให้หน่อย"}`;
+            }
+          }
+
           // Try calling Next.js streaming API route first
           const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              prompt: promptText,
+              prompt: fullPrompt,
               modelId: state.activeModelId,
               history,
             }),
