@@ -81,7 +81,7 @@ export function ModelCard({ model, isSelected, onSelect }: ModelCardProps) {
       <div className="flex items-center justify-between gap-3 mb-2">
         {/* Left: Official Real Icon & Name */}
         <div className="flex items-center gap-3 min-w-0">
-          <ProviderIcon provider={model.provider} size="md" />
+          <ProviderIcon provider={model.provider} iconUrl={model.iconUrl} size="md" />
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[15px] font-bold text-white truncate">
               {model.name}

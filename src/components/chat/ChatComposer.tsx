@@ -157,7 +157,7 @@ export function ChatComposer() {
               suppressHydrationWarning
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#282a2c] hover:bg-[#333538] border border-[rgba(255,255,255,0.06)] text-slate-200 text-[11.5px] font-medium transition-colors cursor-pointer shrink-0 max-w-[130px] sm:max-w-[220px]"
             >
-              <ProviderIcon provider={currentModel.provider} size="sm" />
+              <ProviderIcon provider={currentModel.provider} iconUrl={currentModel.iconUrl} size="sm" />
               <span suppressHydrationWarning className="truncate">
                 {currentModel.name}
               </span>

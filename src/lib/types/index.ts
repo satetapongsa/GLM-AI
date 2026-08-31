@@ -108,6 +108,7 @@ export interface Model {
   isFeatured?: boolean;
   defaultTemperature?: number;
   maxTokens?: number;
+  iconUrl?: string;
 }
 
 export interface ModelCustomSettings {
