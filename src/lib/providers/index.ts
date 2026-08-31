@@ -13,9 +13,7 @@ export * from "./AnthropicProvider";
 export * from "./DeepSeekProvider";
 
 export function getAIProvider(providerName?: string): AIProvider {
-  if (process.env.DEEPSEEK_API_KEY && providerName === "DeepSeek") {
-    return new DeepSeekProvider();
-  }
+  // If specific provider API key is provided, use that provider
   if (process.env.GOOGLE_API_KEY && providerName === "Google") {
     return new GoogleProvider();
   }
@@ -26,11 +24,15 @@ export function getAIProvider(providerName?: string): AIProvider {
     return new AnthropicProvider();
   }
 
-  // If DeepSeek model selected, return DeepSeekProvider (which handles fallback automatically)
+  // If DeepSeek API Key is available, use real DeepSeek AI for all requests!
+  if (process.env.DEEPSEEK_API_KEY) {
+    return new DeepSeekProvider();
+  }
+
   if (providerName === "DeepSeek") {
     return new DeepSeekProvider();
   }
 
-  // Default to our rich MockAIProvider
+  // Fallback to simulated provider if no API keys at all
   return new MockAIProvider();
 }
