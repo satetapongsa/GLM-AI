@@ -26,6 +26,23 @@ interface AuthState {
   setAuthModalMode: (mode: "login" | "register") => void;
 }
 
+function syncUserToDb(user: AuthUser, authProvider = "email") {
+  try {
+    fetch("/api/user/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+        authProvider,
+        role: user.role,
+      }),
+    }).catch(() => {});
+  } catch {}
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -42,44 +59,56 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email: string) => {
         const username = email.split("@")[0] || "user";
+        const newUser: AuthUser = {
+          id: `usr-${Date.now()}`,
+          name: username,
+          email: email,
+          role: "ผู้ใช้ทั่วไป",
+        };
+
         set({
-          user: {
-            id: `usr-${Date.now()}`,
-            name: username,
-            email: email,
-            role: "User",
-          },
+          user: newUser,
           isAuthenticated: true,
           isAuthModalOpen: false,
         });
+
+        syncUserToDb(newUser, "email");
         return true;
       },
 
       register: async (name: string, email: string) => {
+        const newUser: AuthUser = {
+          id: `usr-${Date.now()}`,
+          name: name.trim() || email.split("@")[0] || "user",
+          email: email,
+          role: "สมาชิกใหม่",
+        };
+
         set({
-          user: {
-            id: `usr-${Date.now()}`,
-            name: name.trim() || email.split("@")[0] || "user",
-            email: email,
-            role: "User",
-          },
+          user: newUser,
           isAuthenticated: true,
           isAuthModalOpen: false,
         });
+
+        syncUserToDb(newUser, "email");
         return true;
       },
 
       loginWithGoogle: async () => {
+        const newUser: AuthUser = {
+          id: `usr-google-${Date.now()}`,
+          name: BRAND_CONFIG.defaultUser.name,
+          email: BRAND_CONFIG.defaultUser.email,
+          role: "ผู้ใช้บัญชี Google",
+        };
+
         set({
-          user: {
-            id: `usr-google-${Date.now()}`,
-            name: BRAND_CONFIG.defaultUser.name,
-            email: BRAND_CONFIG.defaultUser.email,
-            role: "User",
-          },
+          user: newUser,
           isAuthenticated: true,
           isAuthModalOpen: false,
         });
+
+        syncUserToDb(newUser, "google");
         return true;
       },
 
