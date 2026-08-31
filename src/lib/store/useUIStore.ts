@@ -7,7 +7,7 @@ interface UIState {
   isCreatePromptModalOpen: boolean;
   isCreateAssistantModalOpen: boolean;
   isUploadModalOpen: boolean;
-  activeTab: "chat" | "prompts" | "saved" | "library" | "learn" | "folders" | "assistants" | "settings";
+  activeTab: "chat" | "prompts" | "saved" | "library" | "learn" | "assistants" | "settings";
 
   // Actions
   toggleSidebar: () => void;

@@ -14,7 +14,6 @@ import {
   Bookmark,
   Star,
   BookOpen,
-  FolderPlus,
   LogIn,
   LogOut,
   MessageSquare,
@@ -84,13 +83,6 @@ export function Sidebar() {
       icon: <BookOpen className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("learn"),
       active: activeTab === "learn",
-    },
-    {
-      id: "folders",
-      label: "โฟลเดอร์",
-      icon: <FolderPlus className="h-4 w-4 text-slate-300" />,
-      onClick: () => setActiveTab("folders"),
-      active: activeTab === "folders",
     },
   ];
 

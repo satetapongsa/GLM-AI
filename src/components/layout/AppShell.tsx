@@ -13,7 +13,6 @@ import { ChatView } from "@/components/chat/ChatView";
 import { PromptLibraryView } from "@/components/prompts/PromptLibraryView";
 import { FileLibraryView } from "@/components/files/FileLibraryView";
 import { LearnView } from "@/components/learn/LearnView";
-import { FoldersView } from "@/components/folders/FoldersView";
 import { SettingsView } from "@/components/settings/SettingsView";
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
@@ -31,8 +30,6 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         return <FileLibraryView />;
       case "learn":
         return <LearnView />;
-      case "folders":
-        return <FoldersView />;
       case "settings":
         return <SettingsView />;
       default:
