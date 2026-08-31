@@ -2,7 +2,6 @@
 
 import React from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { Menu, Plus } from "lucide-react";
@@ -25,11 +24,10 @@ export function MobileHeader() {
       </div>
 
       <div className="flex items-center gap-1.5">
-        <ThemeToggle variant="compact" />
         <button
           onClick={() => setActiveConversation(null)}
           aria-label="แชทใหม่"
-          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#0b57d0] hover:bg-[#0842a0] text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95"
         >
           <Plus className="h-4 w-4" />
           <span>แชทใหม่</span>

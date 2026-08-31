@@ -32,10 +32,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0f19" },
-  ],
+  themeColor: "#131314",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -47,16 +44,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th" suppressHydrationWarning className={`${inter.variable} ${notoSansThai.variable}`}>
+    <html lang="th" suppressHydrationWarning className={`dark ${inter.variable} ${notoSansThai.variable}`}>
       <body
-        className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased selection:bg-blue-500 selection:text-white"
+        className="min-h-screen bg-[#131314] text-[#f1f5f9] antialiased selection:bg-blue-500 selection:text-white"
         style={{ fontFamily: "var(--font-thai), var(--font-inter), sans-serif" }}
       >
         <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
-            enableSystem
+            forcedTheme="dark"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <AppShell>{children}</AppShell>

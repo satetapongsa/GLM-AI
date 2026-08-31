@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useTheme } from "next-themes";
 import { useSettingsStore } from "@/lib/store/useSettingsStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
@@ -10,9 +9,6 @@ import { BRAND_CONFIG } from "@/lib/config/brand";
 import { Button } from "@/components/ui/Button";
 import {
   Settings,
-  Sun,
-  Moon,
-  Laptop,
   Cpu,
   Keyboard,
   Shield,
@@ -27,7 +23,6 @@ import { cn } from "@/lib/utils/cn";
 
 type SettingsTab =
   | "general"
-  | "appearance"
   | "models"
   | "composer"
   | "shortcuts"
@@ -35,7 +30,6 @@ type SettingsTab =
   | "account";
 
 export function SettingsView() {
-  const { theme, setTheme } = useTheme();
   const { settings, updateSettings } = useSettingsStore();
   const { clearAllConversations, conversations, messages } = useChatStore();
   const { user, isAuthenticated, logout, openAuthModal } = useAuthStore();
@@ -66,7 +60,6 @@ export function SettingsView() {
 
   const navTabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: "general", label: "ทั่วไป (General)", icon: <Settings className="h-4 w-4" /> },
-    { id: "appearance", label: "รูปลักษณ์ (Appearance)", icon: <Sun className="h-4 w-4" /> },
     { id: "models", label: "โมเดล AI (AI Models)", icon: <Cpu className="h-4 w-4" /> },
     { id: "composer", label: "กล่องข้อความ (Composer)", icon: <Settings className="h-4 w-4" /> },
     { id: "shortcuts", label: "คีย์ลัด (Shortcuts)", icon: <Keyboard className="h-4 w-4" /> },
@@ -87,7 +80,7 @@ export function SettingsView() {
               การตั้งค่า (Settings & Preferences)
             </h2>
             <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))]">
-              ปรับแต่งพฤติกรรมของ AI ธีมระบบ การเชื่อมต่อ และบัญชีผู้ใช้
+              ปรับแต่งพฤติกรรมของ AI การเชื่อมต่อ และบัญชีผู้ใช้
             </p>
           </div>
         </div>
@@ -160,68 +153,11 @@ export function SettingsView() {
             </div>
           )}
 
-          {/* Appearance Tab */}
-          {activeTab === "appearance" && (
-            <div className="space-y-4">
-              <h3 className="text-base font-bold text-[hsl(var(--foreground))] border-b border-[hsl(var(--border))] pb-2">
-                ธีมและรูปลักษณ์ (Theme & Appearance)
-              </h3>
-
-              <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                เลือกรูปแบบธีมการแสดงผลของระบบ โดยสามารถสลับได้ทันทีโดยไม่ต้องรีโหลดหน้าเว็บ
-              </p>
-
-              <div className="grid grid-cols-3 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setTheme("light")}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer",
-                    theme === "light"
-                      ? "border-blue-500 bg-blue-500/10 text-blue-600"
-                      : "border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]"
-                  )}
-                >
-                  <Sun className="h-6 w-6 mb-2" />
-                  <span className="font-semibold text-xs">Light (สว่าง)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTheme("dark")}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer",
-                    theme === "dark"
-                      ? "border-blue-500 bg-blue-500/10 text-blue-600"
-                      : "border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]"
-                  )}
-                >
-                  <Moon className="h-6 w-6 mb-2" />
-                  <span className="font-semibold text-xs">Dark (มืด)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTheme("system")}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer",
-                    theme === "system"
-                      ? "border-blue-500 bg-blue-500/10 text-blue-600"
-                      : "border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]"
-                  )}
-                >
-                  <Laptop className="h-6 w-6 mb-2" />
-                  <span className="font-semibold text-xs">System (ตามระบบ)</span>
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* AI Models Tab */}
           {activeTab === "models" && (
             <div className="space-y-4">
               <h3 className="text-base font-bold text-[hsl(var(--foreground))] border-b border-[hsl(var(--border))] pb-2">
-                โมเดลเริ่มต้นและคำสั่งระบบ (Default Model & Prompt)
+                โมเดล AI เริ่มต้นและคำสั่งระบบ (Default Model & Prompt)
               </h3>
 
               <div>
@@ -407,11 +343,11 @@ export function SettingsView() {
                 <div className="p-6 rounded-2xl bg-[hsl(var(--muted)/0.3)] border border-[hsl(var(--border))] text-center space-y-3">
                   <User className="h-10 w-10 mx-auto text-slate-400" />
                   <div>
-                    <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                    <h4 className="font-bold text-sm text-slate-200">
                       คุณยังไม่ได้เข้าสู่ระบบ
                     </h4>
-                    <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                      เข้าสู่ระบบด้วยบัญชี Google เพื่อใช้งานระบบ AI Chat เต็มรูปแบบและซิงค์ข้อมูลประวัติการสนทนา
+                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                      เข้าสู่ระบบด้วยบัญชี Google เพื่อใช้งานระบบ AI Chat เต็มรูปแบบ
                     </p>
                   </div>
 
