@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSettingsStore } from "@/lib/store/useSettingsStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
@@ -16,15 +16,12 @@ import {
   Check,
   LogIn,
   LogOut,
-  Code2,
   Mail,
   Phone,
   ExternalLink,
   Copy,
   BadgeCheck,
   Sparkles,
-  Image as ImageIcon,
-  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -36,16 +33,6 @@ type SettingsTab =
   | "account"
   | "creator";
 
-interface MediaItem {
-  id: number;
-  user_email: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  uploaded_at: string;
-  viewUrl: string;
-}
-
 export function SettingsView() {
   const { settings, updateSettings } = useSettingsStore();
   const { clearAllConversations, conversations, messages } = useChatStore();
@@ -54,31 +41,6 @@ export function SettingsView() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [isSaved, setIsSaved] = useState(false);
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
-
-  // Live media list from Neon
-  const [mediaList, setMediaList] = useState<MediaItem[]>([]);
-  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
-
-  const fetchMedia = async () => {
-    setIsLoadingMedia(true);
-    try {
-      const res = await fetch("/api/media/list");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        setMediaList(data.data);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setIsLoadingMedia(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "creator") {
-      fetchMedia();
-    }
-  }, [activeTab]);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -108,35 +70,53 @@ export function SettingsView() {
   };
 
   const navTabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
-    { id: "general", label: "ทั่วไป (General)", icon: <Settings className="h-4 w-4" /> },
-    { id: "composer", label: "กล่องข้อความ (Composer)", icon: <Settings className="h-4 w-4" /> },
-    { id: "shortcuts", label: "คีย์ลัด (Shortcuts)", icon: <Keyboard className="h-4 w-4" /> },
-    { id: "privacy", label: "ความเป็นส่วนตัว & ข้อมูล", icon: <Shield className="h-4 w-4" /> },
-    { id: "account", label: "บัญชีผู้ใช้ (Account)", icon: <User className="h-4 w-4" /> },
-    { id: "creator", label: "ผู้พัฒนา & คลังรูปภาพ Neon (Creator)", icon: <Code2 className="h-4 w-4 text-amber-400" /> },
+    {
+      id: "creator",
+      label: "ข้อมูลผู้สร้าง",
+      icon: <BadgeCheck className="h-4 w-4 text-blue-400" />,
+    },
+    {
+      id: "general",
+      label: "ทั่วไป",
+      icon: <Settings className="h-4 w-4" />,
+    },
+    {
+      id: "account",
+      label: "บัญชีผู้ใช้",
+      icon: <User className="h-4 w-4" />,
+    },
+    {
+      id: "composer",
+      label: "การพิมพ์และการตอบ",
+      icon: <Keyboard className="h-4 w-4" />,
+    },
+    {
+      id: "shortcuts",
+      label: "คีย์ลัด",
+      icon: <Keyboard className="h-4 w-4" />,
+    },
+    {
+      id: "privacy",
+      label: "ความเป็นส่วนตัว & ข้อมูล",
+      icon: <Shield className="h-4 w-4" />,
+    },
   ];
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full">
       {/* Header */}
-      <div className="flex items-center justify-between pb-6 border-b border-[rgba(255,255,255,0.08)]">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
-            <Settings className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#f1f5f9]">
-              การตั้งค่า (Settings & Preferences)
-            </h2>
-            <p className="text-xs sm:text-sm text-[#94a3b8]">
-              ปรับแต่งพฤติกรรมของระบบ ข้อมูลบัญชีผู้ใช้ และโปรไฟล์ผู้พัฒนา
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.08)]">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-[#f1f5f9]">
+            การตั้งค่า (Settings)
+          </h2>
+          <p className="text-xs sm:text-sm text-[#94a3b8]">
+            ปรับแต่งพฤติกรรม ระบบ AI ธีม และข้อมูลส่วนตัวของคุณ
+          </p>
         </div>
 
         <Button
           variant="primary"
-          size="sm"
           onClick={handleSave}
           leftIcon={isSaved ? <Check className="h-4 w-4 text-emerald-400" /> : undefined}
           className="bg-[#0b57d0] hover:bg-[#0842a0] text-white"
@@ -168,7 +148,7 @@ export function SettingsView() {
 
         {/* Right Content Panel */}
         <div className="md:col-span-3 p-6 rounded-3xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] shadow-sm space-y-6 text-xs sm:text-sm text-[#f1f5f9]">
-          {/* Creator Profile & Neon Media Storage Tab */}
+          {/* Creator Profile Tab */}
           {activeTab === "creator" && (
             <div className="space-y-6 animate-fade-up">
               <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-3">
@@ -178,7 +158,7 @@ export function SettingsView() {
                     <BadgeCheck className="h-4 w-4 text-blue-400 fill-blue-400/20" />
                   </h3>
                   <p className="text-xs text-[#94a3b8]">
-                    ผู้ออกแบบและพัฒนาแพลตฟอร์ม GLM-AI (GooMiRu)
+                    ผู้ออกแบบและพัฒนาแพลตฟอร์ม GML AI (GooMiRu)
                   </p>
                 </div>
                 <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
@@ -213,7 +193,7 @@ export function SettingsView() {
                       Full-Stack AI Engineer & System Architect
                     </p>
                     <p className="text-[11px] text-[#64748b]">
-                      ผู้คิดค้น พัฒนาระบบ และดูแลโครงสร้างพื้นฐานของ GLM-AI
+                      ผู้คิดค้น พัฒนาระบบ และดูแลโครงสร้างพื้นฐานของ GML AI
                     </p>
                   </div>
                 </div>
@@ -314,88 +294,6 @@ export function SettingsView() {
                   </div>
                 </div>
               </div>
-
-              {/* Neon Media Storage Gallery Section */}
-              <div className="space-y-4 pt-4 border-t border-[rgba(255,255,255,0.08)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-base font-bold text-[#f1f5f9] flex items-center gap-2">
-                      <ImageIcon className="h-4 w-4 text-emerald-400" />
-                      <span>คลังรูปภาพที่บันทึกลง Neon PostgreSQL</span>
-                    </h4>
-                    <p className="text-xs text-[#94a3b8]">
-                      รูปภาพทั้งหมดที่ผู้ใช้อัปโหลดเข้ามา จะถูกเก็บลงฐานข้อมูล Neon โดยตรง (คลิกเพื่อเปิดดูภาพเต็ม)
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={fetchMedia}
-                    disabled={isLoadingMedia}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#131314] hover:bg-[#282a2c] text-xs font-medium text-slate-300 border border-[rgba(255,255,255,0.08)] transition-colors cursor-pointer"
-                  >
-                    <RefreshCw className={cn("h-3.5 w-3.5", isLoadingMedia && "animate-spin text-blue-400")} />
-                    <span>รีเฟรชรูปภาพ</span>
-                  </button>
-                </div>
-
-                {isLoadingMedia ? (
-                  <div className="py-8 text-center text-xs text-slate-400 animate-pulse">
-                    กำลังโหลดรูปภาพจาก Neon PostgreSQL...
-                  </div>
-                ) : mediaList.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400 bg-[#131314] rounded-2xl border border-[rgba(255,255,255,0.06)]">
-                    ยังไม่มีรูปภาพในฐานข้อมูล Neon (ลองอัปโหลดรูปในหน้าแชท แล้วกดรีเฟรชดูได้เลยครับ)
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {mediaList.map((m) => (
-                      <div
-                        key={m.id}
-                        className="group relative rounded-2xl overflow-hidden bg-[#131314] border border-[rgba(255,255,255,0.08)] hover:border-blue-500/50 transition-all flex flex-col"
-                      >
-                        {/* Thumbnail View */}
-                        <div className="aspect-video w-full bg-slate-900 overflow-hidden relative flex items-center justify-center">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={m.viewUrl}
-                            alt={m.file_name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                            loading="lazy"
-                          />
-                        </div>
-
-                        {/* Details */}
-                        <div className="p-2.5 space-y-1 flex-1 flex flex-col justify-between">
-                          <div>
-                            <p className="text-[11px] font-semibold text-slate-200 truncate" title={m.file_name}>
-                              {m.file_name}
-                            </p>
-                            <p className="text-[10px] text-slate-400 truncate">
-                              โดย: {m.user_email}
-                            </p>
-                          </div>
-
-                          <div className="pt-2 flex items-center justify-between border-t border-[rgba(255,255,255,0.06)]">
-                            <span className="text-[9.5px] text-slate-500 font-mono">
-                              #{m.id}
-                            </span>
-                            <a
-                              href={m.viewUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"
-                            >
-                              <span>เปิดดูภาพเต็ม</span>
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           )}
 
@@ -419,18 +317,69 @@ export function SettingsView() {
                 />
               </div>
 
-              <div className="flex items-center justify-between py-2 border-t border-[rgba(255,255,255,0.08)]">
+              <div className="flex items-center justify-between py-2">
                 <div>
-                  <h4 className="font-semibold text-[#f1f5f9]">แสดงข้อความคำเตือน (Disclaimer)</h4>
-                  <p className="text-xs text-[#94a3b8]">แสดงคำเตือนใต้กล่องข้อความเพื่อความโปร่งใส</p>
+                  <h4 className="font-semibold text-[#f1f5f9]">เสียงเอฟเฟกต์ (Sound Effects)</h4>
+                  <p className="text-xs text-[#94a3b8]">เปิดเสียงเอฟเฟกต์ตอบรับเมื่อส่งข้อความและเสร็จสิ้น</p>
                 </div>
                 <input
                   type="checkbox"
-                  checked={settings.showDisclaimer}
-                  onChange={(e) => updateSettings({ showDisclaimer: e.target.checked })}
+                  checked={settings.soundEffects}
+                  onChange={(e) => updateSettings({ soundEffects: e.target.checked })}
                   className="h-4 w-4 rounded accent-blue-600 cursor-pointer"
                 />
               </div>
+            </div>
+          )}
+
+          {/* Account Tab */}
+          {activeTab === "account" && (
+            <div className="space-y-4">
+              <h3 className="text-base font-bold text-[#f1f5f9] border-b border-[rgba(255,255,255,0.08)] pb-2">
+                บัญชีผู้ใช้งาน
+              </h3>
+
+              {isAuthenticated && user ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)]">
+                    <div className="h-12 w-12 rounded-full bg-[#e65100] text-white flex items-center justify-center font-bold text-lg">
+                      {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white">{user.name}</h4>
+                      <p className="text-xs text-slate-400">{user.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                        {user.role === "admin" ? "ผู้ดูแลระบบ" : "ผู้ใช้ทั่วไป"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (confirm("ต้องการออกจากระบบหรือไม่?")) {
+                        logout();
+                      }
+                    }}
+                    leftIcon={<LogOut className="h-4 w-4 text-red-400" />}
+                    className="text-red-400 border-red-900/40 hover:bg-red-950/20"
+                  >
+                    ออกจากระบบ
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3 p-4 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)] text-center">
+                  <p className="text-xs text-slate-400">คุณยังไม่ได้เข้าสู่ระบบ เข้าสู่ระบบเพื่อซิงค์ข้อมูลและบันทึกประวัติการใช้งาน</p>
+                  <Button
+                    variant="primary"
+                    onClick={() => openAuthModal("login")}
+                    leftIcon={<LogIn className="h-4 w-4" />}
+                    className="bg-[#0b57d0] hover:bg-[#0842a0] text-white mx-auto"
+                  >
+                    เข้าสู่ระบบ / สมัครสมาชิก
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
@@ -438,13 +387,13 @@ export function SettingsView() {
           {activeTab === "composer" && (
             <div className="space-y-4">
               <h3 className="text-base font-bold text-[#f1f5f9] border-b border-[rgba(255,255,255,0.08)] pb-2">
-                พฤติกรรมกล่องข้อความ (Composer Preferences)
+                การพิมพ์และการส่งข้อความ
               </h3>
 
               <div className="flex items-center justify-between py-2">
                 <div>
                   <h4 className="font-semibold text-[#f1f5f9]">กด Enter เพื่อส่งข้อความ</h4>
-                  <p className="text-xs text-[#94a3b8]">หากปิดใช้งาน จะต้องใช้ปุ่มส่งหรือ Ctrl+Enter เท่านั้น</p>
+                  <p className="text-xs text-[#94a3b8]">หากปิด จะต้องกด Shift + Enter เพื่อส่งข้อความ</p>
                 </div>
                 <input
                   type="checkbox"
@@ -460,137 +409,72 @@ export function SettingsView() {
           {activeTab === "shortcuts" && (
             <div className="space-y-4">
               <h3 className="text-base font-bold text-[#f1f5f9] border-b border-[rgba(255,255,255,0.08)] pb-2">
-                แป้นพิมพ์ลัด (Keyboard Shortcuts)
+                คีย์ลัดบนแป้นพิมพ์ (Keyboard Shortcuts)
               </h3>
 
-              <div className="divide-y divide-[rgba(255,255,255,0.08)] text-xs">
-                <div className="flex justify-between py-2.5">
-                  <span>ค้นหาแชท (Command Search)</span>
-                  <kbd className="px-2 py-0.5 rounded bg-[#131314] font-mono">Ctrl + K / Cmd + K</kbd>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-[#131314]">
+                  <span className="text-slate-300">ค้นหาประวัติการสนทนา</span>
+                  <kbd className="px-2 py-1 rounded bg-[#282a2c] text-slate-300 border border-[rgba(255,255,255,0.08)] font-mono">Ctrl + K / ⌘K</kbd>
                 </div>
-                <div className="flex justify-between py-2.5">
-                  <span>ส่งข้อความ</span>
-                  <kbd className="px-2 py-0.5 rounded bg-[#131314] font-mono">Enter</kbd>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-[#131314]">
+                  <span className="text-slate-300">สร้างการสนทนาใหม่</span>
+                  <kbd className="px-2 py-1 rounded bg-[#282a2c] text-slate-300 border border-[rgba(255,255,255,0.08)] font-mono">Ctrl + Shift + O</kbd>
                 </div>
-                <div className="flex justify-between py-2.5">
-                  <span>ขึ้นบรรทัดใหม่ในกล่องพิมพ์</span>
-                  <kbd className="px-2 py-0.5 rounded bg-[#131314] font-mono">Shift + Enter</kbd>
-                </div>
-                <div className="flex justify-between py-2.5">
-                  <span>ปิดหน้าต่าง Modal</span>
-                  <kbd className="px-2 py-0.5 rounded bg-[#131314] font-mono">Esc</kbd>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-[#131314]">
+                  <span className="text-slate-300">ยุบ / ขยาย แถบข้าง</span>
+                  <kbd className="px-2 py-1 rounded bg-[#282a2c] text-slate-300 border border-[rgba(255,255,255,0.08)] font-mono">Ctrl + B / ⌘B</kbd>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Privacy Tab */}
+          {/* Privacy & Data Tab */}
           {activeTab === "privacy" && (
             <div className="space-y-4">
               <h3 className="text-base font-bold text-[#f1f5f9] border-b border-[rgba(255,255,255,0.08)] pb-2">
-                ความเป็นส่วนตัว & การจัดการข้อมูล
+                ความเป็นส่วนตัวและการจัดการข้อมูล
               </h3>
 
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)]">
-                <div>
-                  <h4 className="font-semibold text-[#f1f5f9]">ส่งออกข้อมูลทั้งหมด (Export Data)</h4>
-                  <p className="text-xs text-[#94a3b8]">ดาวน์โหลดประวัติการสนทนาทั้งหมดในรูปแบบไฟล์ JSON</p>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleExportData} leftIcon={<Download className="h-4 w-4" />}>
-                  Export JSON
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500">
-                <div>
-                  <h4 className="font-semibold text-red-400">ล้างประวัติแชททั้งหมด</h4>
-                  <p className="text-xs opacity-80">การกระทำนี้จะลบประวัติการสนทนาทั้งหมดและไม่สามารถกู้คืนได้</p>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติการสนทนาทั้งหมด?")) {
-                      clearAllConversations();
-                      alert("ล้างประวัติแชทเรียบร้อยแล้ว");
-                    }
-                  }}
-                  leftIcon={<Trash2 className="h-4 w-4" />}
-                >
-                  ล้างข้อมูล
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Account Tab */}
-          {activeTab === "account" && (
-            <div className="space-y-4">
-              <h3 className="text-base font-bold text-[#f1f5f9] border-b border-[rgba(255,255,255,0.08)] pb-2">
-                ข้อมูลบัญชีผู้ใช้ (User Account)
-              </h3>
-
-              {isAuthenticated && user ? (
-                /* Logged In View */
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)]">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-[#e65100] text-white flex items-center justify-center font-bold text-lg">
-                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-[#f1f5f9]">
-                          {user.name}
-                        </h4>
-                        <p className="text-xs text-[#94a3b8]">
-                          {user.email}
-                        </p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          {user.role || "สมาชิก GML"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm("คุณต้องการออกจากระบบหรือไม่?")) {
-                          logout();
-                        }
-                      }}
-                      leftIcon={<LogOut className="h-4 w-4" />}
-                    >
-                      ออกจากระบบ
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                /* Logged Out View */
-                <div className="p-6 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)] text-center space-y-3">
-                  <User className="h-10 w-10 mx-auto text-slate-400" />
+              <div className="p-4 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)] space-y-3">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-sm text-slate-200">
-                      คุณยังไม่ได้เข้าสู่ระบบ
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                      เข้าสู่ระบบด้วยบัญชี Google เพื่อใช้งานระบบ AI Chat เต็มรูปแบบ
-                    </p>
+                    <h4 className="font-semibold text-white">ส่งออกข้อมูลทั้งหมด (Export Data)</h4>
+                    <p className="text-xs text-slate-400">ดาวน์โหลดประวัติการสนทนาและไฟล์ที่บันทึกไว้ในรูปแบบ JSON</p>
                   </div>
-
-                  <div className="pt-2 flex justify-center gap-2">
-                    <Button
-                      variant="primary"
-                      size="md"
-                      onClick={() => openAuthModal("login")}
-                      className="bg-[#0b57d0] hover:bg-[#0842a0] text-white rounded-full px-6"
-                      leftIcon={<LogIn className="h-4 w-4" />}
-                    >
-                      เข้าสู่ระบบ / สมัครสมาชิก
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportData}
+                    leftIcon={<Download className="h-4 w-4" />}
+                  >
+                    ดาวน์โหลด JSON
+                  </Button>
                 </div>
-              )}
+              </div>
+
+              <div className="p-4 rounded-2xl bg-red-950/20 border border-red-900/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-red-300">ล้างประวัติการสนทนาทั้งหมด</h4>
+                    <p className="text-xs text-red-400/80">ลบประวัติการแชททั้งหมดในเครื่อง ไม่สามารถกู้คืนได้</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติการแชททั้งหมดในเครื่อง?")) {
+                        clearAllConversations();
+                        alert("ล้างประวัติการแชทเรียบร้อยแล้ว");
+                      }
+                    }}
+                    leftIcon={<Trash2 className="h-4 w-4 text-red-400" />}
+                    className="text-red-400 border-red-900/50 hover:bg-red-950/40"
+                  >
+                    ลบทั้งหมด
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>

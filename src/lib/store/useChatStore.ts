@@ -6,6 +6,44 @@ import { DEFAULT_MODEL_ID, AVAILABLE_MODELS } from "@/lib/config/models";
 import { getAIProvider } from "@/lib/providers";
 import { calculateTokensForRequest, useTokenStore } from "@/lib/store/useTokenStore";
 
+function buildOptimizedHistory(
+  messages: Message[],
+  excludeId: string,
+  isOpMode: boolean
+): { role: "user" | "assistant" | "system"; content: string }[] {
+  // Exclude placeholder assistant message and admin commands from sent history
+  const filtered = messages.filter(
+    (m) =>
+      m.id !== excludeId &&
+      m.content &&
+      m.content.trim() !== "/op" &&
+      m.content.trim() !== "/deop" &&
+      !m.content.startsWith("✦ **[Admin OP Mode")
+  );
+
+  // In Standard Mode: Smart Token Saver (Sliding Window of last 6 messages, truncate old verbose text)
+  if (!isOpMode) {
+    const recent = filtered.slice(-6);
+    return recent.map((m) => {
+      // Truncate past assistant message outputs to max 350 chars so old answers don't blow up token cost
+      const content =
+        m.role === "assistant" && m.content.length > 350
+          ? m.content.slice(0, 350) + "..."
+          : m.content;
+      return {
+        role: m.role,
+        content,
+      };
+    });
+  }
+
+  // In OP Mode: Keep comprehensive history up to 14 turns
+  return filtered.slice(-14).map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+}
+
 interface ChatState {
   conversations: Conversation[];
   activeConversationId: string | null;
@@ -272,9 +310,9 @@ export const useChatStore = create<ChatState>()(
         let finalResponseText = "";
 
         try {
-          const history = (get().messages[convId] || [])
-            .filter((m) => m.id !== assistantMessageId)
-            .map((m) => ({ role: m.role, content: m.content }));
+          // Build smart token-optimized history (Sliding Context Window)
+          const allMsgs = get().messages[convId] || [];
+          const history = buildOptimizedHistory(allMsgs, assistantMessageId, state.isOpMode);
 
           // Construct enriched prompt with attached file contents
           let fullPrompt = promptText;
@@ -472,7 +510,9 @@ export const useChatStore = create<ChatState>()(
         let finalResponseText = "";
 
         try {
-          const history = msgList.slice(0, targetIdx).map((m) => ({ role: m.role, content: m.content }));
+          const rawHistory = msgList.slice(0, targetIdx);
+          const history = buildOptimizedHistory(rawHistory, messageId, state.isOpMode);
+
           const currentModel = AVAILABLE_MODELS.find((m) => m.id === state.activeModelId);
           const provider = getAIProvider(currentModel?.provider);
 
