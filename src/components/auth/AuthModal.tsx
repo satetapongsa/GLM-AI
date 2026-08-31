@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { useAuthStore } from "@/lib/store/useAuthStore";
+import { signIn } from "next-auth/react";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -28,6 +29,9 @@ export function AuthModal() {
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     try {
+      // Trigger NextAuth Google OAuth flow
+      await signIn("google");
+    } catch {
       await loginWithGoogle();
       closeAuthModal();
     } finally {

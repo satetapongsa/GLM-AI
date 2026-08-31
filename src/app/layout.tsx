@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { BRAND_CONFIG } from "@/lib/config/brand";
 import { AppShell } from "@/components/layout/AppShell";
 
@@ -51,14 +52,16 @@ export default function RootLayout({
         className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased selection:bg-blue-500 selection:text-white"
         style={{ fontFamily: "var(--font-thai), var(--font-inter), sans-serif" }}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AppShell>{children}</AppShell>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AppShell>{children}</AppShell>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
