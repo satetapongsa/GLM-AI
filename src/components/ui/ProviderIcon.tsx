@@ -20,16 +20,16 @@ export function ProviderIcon({
   const [imgError, setImgError] = useState(false);
 
   const sizeClasses = {
-    sm: "h-6 w-6 rounded-lg",
-    md: "h-9 w-9 rounded-xl",
-    lg: "h-11 w-11 rounded-2xl",
-    xl: "h-13 w-13 rounded-2xl",
+    sm: "h-6 w-6 p-0.5 rounded-lg",
+    md: "h-8 w-8 p-1 rounded-xl",
+    lg: "h-10 w-10 p-1.5 rounded-2xl",
+    xl: "h-12 w-12 p-2 rounded-2xl",
   };
 
   const p = (provider || "").toLowerCase();
 
-  let fallbackIconSrc = "/icons/models/deepseek.svg";
-  let bgClass = "bg-[#0066ff]/15 border border-[#0066ff]/30";
+  let fallbackIconSrc = "/icons/models/gemini.svg";
+  let bgClass = "bg-[#1a73e8]/15 border border-[#1a73e8]/30";
   let title = provider || "AI Model";
 
   if (p.includes("anthropic") || p.includes("claude")) {
@@ -79,7 +79,7 @@ export function ProviderIcon({
   return (
     <div
       className={cn(
-        "flex items-center justify-center shrink-0 shadow-xs overflow-hidden bg-[#131314] border border-[rgba(255,255,255,0.1)]",
+        "flex items-center justify-center shrink-0 shadow-xs overflow-hidden bg-[#131314] border border-[rgba(255,255,255,0.12)]",
         sizeClasses[size],
         className
       )}
@@ -91,7 +91,7 @@ export function ProviderIcon({
         alt={title}
         referrerPolicy="no-referrer"
         onError={() => setImgError(true)}
-        className="w-full h-full object-cover select-none"
+        className="w-full h-full object-contain select-none transition-transform"
         loading="eager"
       />
     </div>
