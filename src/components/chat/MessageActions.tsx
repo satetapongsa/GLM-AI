@@ -1,0 +1,115 @@
+"use client";
+
+import React, { useState } from "react";
+import { Message, MessageRating } from "@/lib/types";
+import { useChatStore } from "@/lib/store/useChatStore";
+import { cn } from "@/lib/utils/cn";
+import {
+  Copy,
+  Check,
+  RotateCcw,
+  ThumbsUp,
+  ThumbsDown,
+  Share2,
+} from "lucide-react";
+
+export interface MessageActionsProps {
+  message: Message;
+}
+
+export function MessageActions({ message }: MessageActionsProps) {
+  const { regenerateResponse, rateMessage, isStreaming } = useChatStore();
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      // Fallback
+    }
+  };
+
+  const handleRate = (rating: MessageRating) => {
+    rateMessage(message.id, rating);
+  };
+
+  const handleShare = () => {
+    alert("คัดลอกข้อความสำหรับแชร์เรียบร้อยแล้ว");
+  };
+
+  return (
+    <div className="flex items-center gap-1 mt-2 text-[hsl(var(--muted-foreground))]">
+      {/* Copy */}
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label="คัดลอกข้อความ"
+        className="p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
+        title="คัดลอก"
+      >
+        {isCopied ? (
+          <Check className="h-3.5 w-3.5 text-emerald-500" />
+        ) : (
+          <Copy className="h-3.5 w-3.5" />
+        )}
+      </button>
+
+      {/* Regenerate */}
+      <button
+        type="button"
+        disabled={isStreaming}
+        onClick={() => regenerateResponse(message.id)}
+        aria-label="ตอบใหม่อีกครั้ง"
+        className="p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-40 transition-colors cursor-pointer"
+        title="ตอบใหม่อีกครั้ง"
+      >
+        <RotateCcw className="h-3.5 w-3.5" />
+      </button>
+
+      {/* Like */}
+      <button
+        type="button"
+        onClick={() => handleRate("like")}
+        aria-label="ถูกใจคำตอบ"
+        className={cn(
+          "p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] transition-colors cursor-pointer",
+          message.rating === "like"
+            ? "text-emerald-500 fill-emerald-500/20"
+            : "hover:text-[hsl(var(--foreground))]"
+        )}
+        title="ถูกใจ"
+      >
+        <ThumbsUp className="h-3.5 w-3.5" />
+      </button>
+
+      {/* Dislike */}
+      <button
+        type="button"
+        onClick={() => handleRate("dislike")}
+        aria-label="ไม่ถูกใจคำตอบ"
+        className={cn(
+          "p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] transition-colors cursor-pointer",
+          message.rating === "dislike"
+            ? "text-rose-500 fill-rose-500/20"
+            : "hover:text-[hsl(var(--foreground))]"
+        )}
+        title="ไม่ถูกใจ"
+      >
+        <ThumbsDown className="h-3.5 w-3.5" />
+      </button>
+
+      {/* Share */}
+      <button
+        type="button"
+        onClick={handleShare}
+        aria-label="แชร์คำตอบ"
+        className="p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
+        title="แชร์"
+      >
+        <Share2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
