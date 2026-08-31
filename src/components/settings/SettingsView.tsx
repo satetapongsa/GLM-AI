@@ -6,6 +6,7 @@ import { useChatStore } from "@/lib/store/useChatStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import { BRAND_CONFIG } from "@/lib/config/brand";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import {
   Settings,
   Keyboard,
@@ -22,6 +23,7 @@ import {
   Copy,
   BadgeCheck,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -41,6 +43,8 @@ export function SettingsView() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [isSaved, setIsSaved] = useState(false);
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isClearedSuccess, setIsClearedSuccess] = useState(false);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -67,6 +71,13 @@ export function SettingsView() {
   const handleSave = () => {
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  const handleConfirmClearAll = () => {
+    clearAllConversations();
+    setIsClearModalOpen(false);
+    setIsClearedSuccess(true);
+    setTimeout(() => setIsClearedSuccess(false), 3500);
   };
 
   const navTabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
@@ -436,6 +447,13 @@ export function SettingsView() {
                 ความเป็นส่วนตัวและการจัดการข้อมูล
               </h3>
 
+              {isClearedSuccess && (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fade-up">
+                  <Check className="h-4 w-4 shrink-0" />
+                  <span>ล้างประวัติการสนทนาทั้งหมดในเครื่องเรียบร้อยแล้ว</span>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl bg-[#131314] border border-[rgba(255,255,255,0.08)] space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -462,12 +480,7 @@ export function SettingsView() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติการแชททั้งหมดในเครื่อง?")) {
-                        clearAllConversations();
-                        alert("ล้างประวัติการแชทเรียบร้อยแล้ว");
-                      }
-                    }}
+                    onClick={() => setIsClearModalOpen(true)}
                     leftIcon={<Trash2 className="h-4 w-4 text-red-400" />}
                     className="text-red-400 border-red-900/50 hover:bg-red-950/40"
                   >
@@ -479,6 +492,47 @@ export function SettingsView() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal UI for Clearing All Chats */}
+      <Modal
+        isOpen={isClearModalOpen}
+        onClose={() => setIsClearModalOpen(false)}
+        maxWidth="md"
+        title={
+          <div className="flex items-center gap-2.5 text-red-400">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-base font-bold text-white">ยืนยันการล้างประวัติแชททั้งหมด?</span>
+          </div>
+        }
+      >
+        <div className="space-y-5">
+          <div className="p-4 rounded-2xl bg-[#131314] border border-red-500/20 text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="font-semibold text-red-400 mb-1.5">⚠️ ข้อมูลจะถูกลบอย่างถาวร:</p>
+            คุณกำลังจะลบประวัติการสนทนาทั้งหมด <strong className="text-white font-bold">({conversations.length} แชท)</strong> ที่บันทึกไว้ในอุปกรณ์นี้ ข้อมูลที่ถูกลบจะไม่สามารถกู้คืนกลับมาได้อีก
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsClearModalOpen(false)}
+              className="px-4 py-2 text-xs"
+            >
+              ยกเลิก
+            </Button>
+
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleConfirmClearAll}
+              leftIcon={<Trash2 className="h-4 w-4" />}
+              className="bg-red-600 hover:bg-red-700 text-white border-transparent px-4 py-2 text-xs font-semibold shadow-md"
+            >
+              ยืนยันลบทั้งหมด
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
