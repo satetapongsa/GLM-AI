@@ -5,6 +5,7 @@ import { INITIAL_CONVERSATIONS, INITIAL_MESSAGES } from "@/lib/config/defaultDat
 import { DEFAULT_MODEL_ID, AVAILABLE_MODELS } from "@/lib/config/models";
 import { getAIProvider } from "@/lib/providers";
 import { calculateTokensForRequest, useTokenStore } from "@/lib/store/useTokenStore";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 
 function buildOptimizedHistory(
   messages: Message[],
@@ -328,6 +329,7 @@ export const useChatStore = create<ChatState>()(
           }
 
           // Try calling Next.js streaming API route first
+          const currentUserEmail = useAuthStore.getState().user?.email || "guest_user";
           const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -336,6 +338,7 @@ export const useChatStore = create<ChatState>()(
               modelId: state.activeModelId,
               history,
               isOpMode: state.isOpMode,
+              userEmail: currentUserEmail,
             }),
             signal: controller.signal,
           });

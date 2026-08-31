@@ -132,6 +132,22 @@ export async function ensureTablesExist() {
       CREATE INDEX IF NOT EXISTS idx_library_user ON knowledge_library_files(user_email);
     `;
 
+    // 5. User Question Prompts Logger (Stores ONLY user prompts/questions to save database storage)
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_prompts (
+        id SERIAL PRIMARY KEY,
+        user_email VARCHAR(255),
+        prompt TEXT NOT NULL,
+        model_id VARCHAR(100),
+        ip_address VARCHAR(45),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_prompts_created ON user_prompts(created_at DESC);
+    `;
+
     isInitialized = true;
   } catch (error) {
     console.error("Neon DB Initialization Error:", error);
@@ -366,4 +382,45 @@ export async function deleteLibraryFile(id: string) {
   `;
 
   return true;
+}
+
+// ----------------------------------------------------
+// User Prompts / Questions Storage (Saves ONLY questions, NO answers)
+// ----------------------------------------------------
+
+export async function logUserPrompt(data: {
+  prompt: string;
+  modelId?: string;
+  userEmail?: string;
+  ipAddress?: string;
+}) {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  try {
+    const result = await sql`
+      INSERT INTO user_prompts (
+        user_email,
+        prompt,
+        model_id,
+        ip_address,
+        created_at
+      )
+      VALUES (
+        ${data.userEmail || "guest_user"},
+        ${data.prompt},
+        ${data.modelId || "deepseek-chat"},
+        ${data.ipAddress || "unknown"},
+        NOW()
+      )
+      RETURNING id, created_at;
+    `;
+
+    return result[0];
+  } catch (error) {
+    console.error("Error logging user prompt to Neon DB:", error);
+    return null;
+  }
 }
