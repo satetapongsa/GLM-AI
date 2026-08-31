@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useModelStore } from "@/lib/store/useModelStore";
 import { useTokenStore } from "@/lib/store/useTokenStore";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import { BRAND_CONFIG } from "@/lib/config/brand";
 import { AttachmentMenu } from "./AttachmentMenu";
 import { AttachmentPreview } from "./AttachmentPreview";
@@ -14,6 +15,7 @@ import {
   Square,
   ChevronDown,
   Coins,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -30,6 +32,7 @@ export function ChatComposer() {
 
   const { openModelModal, getSelectedModel } = useModelStore();
   const { usedTokensToday, dailyLimit, getRemainingTokens } = useTokenStore();
+  const { isAuthenticated, openAuthModal } = useAuthStore();
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,10 +41,11 @@ export function ChatComposer() {
     setMounted(true);
   }, []);
 
+  const isUserAuth = mounted ? isAuthenticated : false;
   const selectedModel = getSelectedModel();
-  const displayUsedTokens = mounted ? usedTokensToday : 12;
+  const displayUsedTokens = mounted ? usedTokensToday : 0;
   const displayDailyLimit = mounted ? dailyLimit : 1000;
-  const displayRemaining = mounted ? getRemainingTokens() : 988;
+  const displayRemaining = mounted ? getRemainingTokens() : 1000;
 
   // Auto-grow textarea
   useEffect(() => {
@@ -53,6 +57,12 @@ export function ChatComposer() {
   }, [composerText]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!isUserAuth) {
+      e.preventDefault();
+      openAuthModal("login");
+      return;
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!isStreaming && (composerText.trim() || composerAttachments.length > 0)) {
@@ -62,10 +72,21 @@ export function ChatComposer() {
   };
 
   const handleSendOrStop = () => {
+    if (!isUserAuth) {
+      openAuthModal("login");
+      return;
+    }
+
     if (isStreaming) {
       stopGeneration();
     } else if (composerText.trim() || composerAttachments.length > 0) {
       sendMessage();
+    }
+  };
+
+  const handleFocus = () => {
+    if (!isUserAuth) {
+      openAuthModal("login");
     }
   };
 
@@ -88,7 +109,12 @@ export function ChatComposer() {
           value={composerText}
           onChange={(e) => setComposerText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={BRAND_CONFIG.placeholderInput}
+          onFocus={handleFocus}
+          placeholder={
+            isUserAuth
+              ? BRAND_CONFIG.placeholderInput
+              : "เข้าสู่ระบบด้วย Google หรือสมัครสมาชิกเพื่อเริ่มพิมพ์ถาม AI..."
+          }
           className="w-full min-h-[28px] max-h-[140px] bg-transparent border-0 resize-none py-1 px-1 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none scrollbar-none leading-relaxed"
         />
 
@@ -99,7 +125,13 @@ export function ChatComposer() {
             <div className="relative shrink-0">
               <button
                 type="button"
-                onClick={() => setIsAttachmentMenuOpen(!isAttachmentMenuOpen)}
+                onClick={() => {
+                  if (!isUserAuth) {
+                    openAuthModal("login");
+                  } else {
+                    setIsAttachmentMenuOpen(!isAttachmentMenuOpen);
+                  }
+                }}
                 aria-label="แนบไฟล์หรือรูปภาพ"
                 className={cn(
                   "h-7 w-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -108,13 +140,15 @@ export function ChatComposer() {
                 <Plus className={cn("h-4 w-4 transition-transform duration-200", isAttachmentMenuOpen && "rotate-45")} />
               </button>
 
-              <AttachmentMenu
-                isOpen={isAttachmentMenuOpen}
-                onClose={() => setIsAttachmentMenuOpen(false)}
-              />
+              {isUserAuth && (
+                <AttachmentMenu
+                  isOpen={isAttachmentMenuOpen}
+                  onClose={() => setIsAttachmentMenuOpen(false)}
+                />
+              )}
             </div>
 
-            {/* Model Pill Button [ ✦ Gemini 3.1 Flash Lite ▾ ] */}
+            {/* Model Pill Button [ ✦ DeepSeek V3 (Chat) ▾ ] */}
             <button
               type="button"
               onClick={openModelModal}
@@ -127,20 +161,31 @@ export function ChatComposer() {
               <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
-            {/* Token Quota Badge: [ 🪙 12/1000 ] */}
-            <div
-              suppressHydrationWarning
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] font-medium text-slate-600 dark:text-slate-400 select-none"
-              title={`โควต้าประจำวัน: ใช้ไปแล้ว ${displayUsedTokens} / ${displayDailyLimit} โทเคน (เหลือ ${displayRemaining} โทเคน)`}
-            >
-              <Coins className="h-3 w-3 text-amber-500 shrink-0" />
-              <span suppressHydrationWarning className="font-semibold text-slate-800 dark:text-slate-200">
-                {displayUsedTokens}
-              </span>
-              <span suppressHydrationWarning className="text-slate-400">
-                /{displayDailyLimit}
-              </span>
-            </div>
+            {/* Token Quota Badge or Sign In Required Pill */}
+            {isUserAuth ? (
+              <div
+                suppressHydrationWarning
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] font-medium text-slate-600 dark:text-slate-400 select-none"
+                title={`โควต้าประจำวัน: ใช้ไปแล้ว ${displayUsedTokens} / ${displayDailyLimit} โทเคน (เหลือ ${displayRemaining} โทเคน)`}
+              >
+                <Coins className="h-3 w-3 text-amber-500 shrink-0" />
+                <span suppressHydrationWarning className="font-semibold text-slate-800 dark:text-slate-200">
+                  {displayUsedTokens}
+                </span>
+                <span suppressHydrationWarning className="text-slate-400">
+                  /{displayDailyLimit}
+                </span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 cursor-pointer transition-colors select-none"
+              >
+                <Lock className="h-3 w-3 text-amber-500 shrink-0" />
+                <span>เข้าสู่ระบบก่อนเริ่มถาม</span>
+              </button>
+            )}
           </div>
 
           {/* Send / Paper Plane Icon Button */}
@@ -158,16 +203,17 @@ export function ChatComposer() {
             ) : (
               <button
                 type="button"
-                disabled={!hasContent}
                 onClick={handleSendOrStop}
                 aria-label="ส่งข้อความ"
                 className={cn(
                   "h-8 w-8 rounded-full flex items-center justify-center transition-all cursor-pointer",
-                  hasContent
+                  isUserAuth && hasContent
+                    ? "bg-[#0b57d0] text-white hover:bg-[#0842a0] active:scale-95 shadow-xs"
+                    : !isUserAuth
                     ? "bg-[#0b57d0] text-white hover:bg-[#0842a0] active:scale-95 shadow-xs"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                 )}
-                title="ส่งข้อความ (Enter)"
+                title={isUserAuth ? "ส่งข้อความ (Enter)" : "เข้าสู่ระบบเพื่อส่งข้อความ"}
               >
                 <SendHorizontal className="h-4 w-4" />
               </button>

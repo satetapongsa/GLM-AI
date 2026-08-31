@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { BRAND_CONFIG } from "@/lib/config/brand";
+import { signOut } from "next-auth/react";
 
 export interface AuthUser {
   id: string;
@@ -46,14 +46,8 @@ function syncUserToDb(user: AuthUser, authProvider = "email") {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: {
-        id: BRAND_CONFIG.defaultUser.id,
-        name: BRAND_CONFIG.defaultUser.name,
-        email: BRAND_CONFIG.defaultUser.email,
-        avatar: BRAND_CONFIG.defaultUser.avatar,
-        role: BRAND_CONFIG.defaultUser.role,
-      },
-      isAuthenticated: true,
+      user: null,
+      isAuthenticated: false,
       isAuthModalOpen: false,
       authModalMode: "login",
 
@@ -95,24 +89,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginWithGoogle: async () => {
-        const newUser: AuthUser = {
-          id: `usr-google-${Date.now()}`,
-          name: BRAND_CONFIG.defaultUser.name,
-          email: BRAND_CONFIG.defaultUser.email,
-          role: "ผู้ใช้บัญชี Google",
-        };
-
-        set({
-          user: newUser,
-          isAuthenticated: true,
-          isAuthModalOpen: false,
-        });
-
-        syncUserToDb(newUser, "google");
+        // Handled by NextAuth callback in AuthProvider
         return true;
       },
 
       logout: () => {
+        try {
+          signOut({ redirect: false }).catch(() => {});
+        } catch {}
+
         set({
           user: null,
           isAuthenticated: false,

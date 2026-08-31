@@ -1,10 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BRAND_CONFIG } from "@/lib/config/brand";
-import { BrandLogo } from "@/components/layout/BrandLogo";
+import { useAuthStore } from "@/lib/store/useAuthStore";
+import { LogIn } from "lucide-react";
 
 export function WelcomeScreen() {
+  const { isAuthenticated, openAuthModal } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isUserAuth = mounted ? isAuthenticated : false;
+
   return (
     <div className="flex flex-col items-center justify-center text-center px-4 pt-8 pb-4 max-w-xl mx-auto select-none animate-fade-up">
       {/* Welcome Title */}
@@ -18,7 +28,7 @@ export function WelcomeScreen() {
       </p>
 
       {/* Central GML 4-Pointed AI Diamond Star with Floating Orb */}
-      <div className="my-7 relative flex items-center justify-center animate-soft-float">
+      <div className="my-6 relative flex items-center justify-center animate-soft-float">
         <svg
           viewBox="0 0 100 100"
           fill="none"
@@ -42,6 +52,20 @@ export function WelcomeScreen() {
           </defs>
         </svg>
       </div>
+
+      {/* Sign In CTA if not authenticated */}
+      {!isUserAuth && (
+        <div className="mt-1">
+          <button
+            type="button"
+            onClick={() => openAuthModal("login")}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0b57d0] hover:bg-[#0842a0] text-white text-xs font-semibold shadow-md active:scale-95 transition-all cursor-pointer"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>เข้าสู่ระบบด้วย Google หรือสมัครสมาชิกเพื่อเริ่มแชท</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
