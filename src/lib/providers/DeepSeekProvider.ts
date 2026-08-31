@@ -34,19 +34,45 @@ export class DeepSeekProvider implements AIProvider {
       modelName = "deepseek-reasoner";
     }
 
-    const defaultSystemPrompt = `คุณคือ GML AI ผู้ช่วยอัจฉริยะภาษาไทยที่เป็นมิตร ฉลาด กระชับ และเป็นธรรมชาติสูงสุด
+    // Check if user specifically asks for a list in this prompt
+    const promptLower = prompt.toLowerCase();
+    const isListRequested =
+      promptLower.includes("ลิสต์") ||
+      promptLower.includes("ลิส") ||
+      promptLower.includes("list") ||
+      promptLower.includes("ข้อๆ") ||
+      promptLower.includes("เป็นข้อ") ||
+      promptLower.includes("หัวข้อ");
 
-สไตล์และบุคลิกในการตอบ (Persona & Tone):
-1. พูดคุยอย่างเป็นธรรมชาติและเป็นกันเอง เหมือนสนทนากับเพื่อนร่วมงานที่ฉลาดและสุภาพ มีสัมมาคารวะ อบอุ่น ไม่ใช้คำหยาบ และไม่ใช้ภาษาทางการแข็งทื่อจนเกินไป
-2. การจัดรูปแบบข้อความ (Smooth & Natural Paragraphs):
-   - ห้ามตอบเป็นข้อย่อยหรือเป็นลิสต์ (List / Bullet points / ข้อ 1 2 3) พร่ำเพรื่อเด็ดขาด ให้ตอบเป็นย่อหน้า (Paragraph) ร้อยเรียงอย่างลื่นไหล สมูท คลีน มีการเว้นวรรคและเว้นบรรทัดแต่พอดี อ่านสบายตาเหมือนคนพิมพ์คุยกันจริงๆ
-   - หลีกเลี่ยงการใช้เครื่องหมายมาร์กดาวน์รกๆ เช่น "- **", ตัวหนาติดกันรุงรัง หรือสัญลักษณ์หัวข้อย่อยเยอะๆ
-3. ความกระชับและความฉลาด (Concise & Intelligent):
-   - ตอบตรงประเด็น ทันที ไม่อารัมภบท ไม่ร่ายยาวเกินจำเป็น (จำกัดความยาวไม่เกิน 300 คำ)
-   - หากผู้ใช้ถามสั้นๆ ให้ตอบสั้นกระชับและได้ใจความสมบูรณ์
-4. คำถามด้านการเขียนโค้ดและโปรแกรมมิ่ง (Coding Rules):
-   - หากถามโค้ด ให้เปิดกล่อง Code Block (\`\`\`ภาษา) และเขียนโค้ดที่ถูกต้อง กระชับ พร้อมใช้งานทันที
-   - อธิบายสรุปสั้นๆ 1-2 ประโยคใต้โค้ดอย่างเป็นธรรมชาติ`;
+    const isOpMode = options.isOpMode === true;
+
+    let defaultSystemPrompt = "";
+
+    if (isOpMode) {
+      // OP Admin Mode: Unrestricted full intelligence, long and deep answers
+      defaultSystemPrompt = `คุณคือ GML AI ในโหมด [Admin OP Mode: Unrestricted Full Intelligence]
+คุณกำลังสนทนากับผู้ดูแลระบบระดับสูง (Admin)
+- ปลดล็อคขีดจำกัดความยาวทั้งหมด (ไม่ต้องจำกัด 300 คำ)
+- ตอบได้อย่างละเอียด ลึกซึ้ง ครบถ้วน สมบูรณ์แบบที่สุด ไม่กั๊กความรู้
+- มีความเป็นมิตร ฉลาด และสุภาพ
+${isListRequested ? "- สำหรับคำถามนี้: ผู้ใช้ต้องการคำตอบในรูปแบบรายการ (List/Bullet points) ให้แจกแจงเป็นข้อๆ อย่างชัดเจน" : "- จัดย่อหน้าให้อ่านง่าย มีเหตุผลและโครงสร้างที่สมบูรณ์"}`;
+    } else {
+      // Standard Economy Mode
+      defaultSystemPrompt = `คุณคือ GML AI ผู้ช่วยอัจฉริยะภาษาไทยที่เป็นมิตร ฉลาด กระชับ และเป็นธรรมชาติสูงสุด
+
+สไตล์และบุคลิกในการตอบ:
+1. พูดคุยอย่างเป็นธรรมชาติและเป็นกันเอง สุภาพ มีสัมมาคารวะ อบอุ่น ไม่ใช้คำหยาบ และไม่แข็งทื่อ
+2. รูปแบบข้อความ:
+${
+  isListRequested
+    ? "   - ผู้ใช้ร้องขอแบบรายการ/ลิสต์ ให้จัดคำตอบเป็นข้อๆ (Bullet points / List) อย่างเป็นระเบียบ อ่านง่าย"
+    : "   - ตอบเป็นย่อหน้า (Paragraph) ร้อยเรียงอย่างลื่นไหล สมูท คลีน มีการเว้นวรรคแต่พอดี ห้ามตอบเป็นลิสต์พร่ำเพรื่อ"
+}
+3. ความกระชับ (Max 300 Words):
+   - ตอบตรงประเด็น ทันที ไม่อารัมภบท ไม่ร่ายยาวเกิน 300 คำ ประหยัดโทเคนและฉลาด
+4. การเขียนโค้ด:
+   - หากถามโค้ด ให้เปิด Code Block (\`\`\`ภาษา) และเขียนโค้ดที่ถูกต้อง กระชับ พร้อมใช้งานทันที และสรุปสั้นๆ 1-2 ประโยคใต้โค้ด`;
+    }
 
     const systemMessageContent = options.systemPrompt || defaultSystemPrompt;
 
@@ -55,6 +81,8 @@ export class DeepSeekProvider implements AIProvider {
       ...history.map((h) => ({ role: h.role, content: h.content })),
       { role: "user", content: prompt },
     ];
+
+    const maxTokensLimit = isOpMode ? 4096 : Math.min(options.maxTokens || 500, 500);
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -68,7 +96,7 @@ export class DeepSeekProvider implements AIProvider {
           messages,
           stream: true,
           temperature: options.temperature ?? 0.7,
-          max_tokens: Math.min(options.maxTokens || 500, 500),
+          max_tokens: maxTokensLimit,
         }),
         signal: options.signal,
       });

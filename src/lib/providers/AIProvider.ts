@@ -15,6 +15,7 @@ export interface ChatProviderOptions {
   systemPrompt?: string;
   attachments?: Attachment[];
   signal?: AbortSignal;
+  isOpMode?: boolean;
   onChunk?: (chunk: StreamChunk) => void;
 }
 

@@ -16,6 +16,7 @@ interface ChatState {
   isStreaming: boolean;
   streamingMessageId: string | null;
   abortController: AbortController | null;
+  isOpMode: boolean;
 
   // Actions
   setActiveConversation: (id: string | null) => void;
@@ -24,6 +25,7 @@ interface ChatState {
   addComposerAttachment: (attachment: Attachment) => void;
   removeComposerAttachment: (id: string) => void;
   clearComposerAttachments: () => void;
+  setOpMode: (enabled: boolean) => void;
 
   createNewConversation: (title?: string, modelId?: string) => string;
   renameConversation: (id: string, newTitle: string) => void;
@@ -50,12 +52,15 @@ export const useChatStore = create<ChatState>()(
       isStreaming: false,
       streamingMessageId: null,
       abortController: null,
+      isOpMode: false,
 
       setActiveConversation: (id) => set({ activeConversationId: id }),
 
       setActiveModel: (modelId) => set({ activeModelId: modelId }),
 
       setComposerText: (text) => set({ composerText: text }),
+
+      setOpMode: (enabled) => set({ isOpMode: enabled }),
 
       addComposerAttachment: (attachment) =>
         set((state) => ({
@@ -73,11 +78,11 @@ export const useChatStore = create<ChatState>()(
         const newId = `conv-${Date.now()}`;
         const newConv: Conversation = {
           id: newId,
-          title: title || "บทสนทนาใหม่",
+          title: title || "การสนทนาใหม่",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          pinned: false,
           modelId: modelId || get().activeModelId,
+          pinned: false,
           messageCount: 0,
         };
 
@@ -147,6 +152,72 @@ export const useChatStore = create<ChatState>()(
         const currentModel = AVAILABLE_MODELS.find((m) => m.id === state.activeModelId);
         const userMessageId = `msg-user-${Date.now()}`;
         const assistantMessageId = `msg-asst-${Date.now() + 1}`;
+
+        // SECRET ADMIN OP COMMAND: /op
+        if (promptText.toLowerCase() === "/op") {
+          set((s) => {
+            const userMsg: Message = {
+              id: userMessageId,
+              conversationId: convId as string,
+              role: "user",
+              content: "/op",
+              createdAt: new Date().toISOString(),
+            };
+            const opReply: Message = {
+              id: assistantMessageId,
+              conversationId: convId as string,
+              role: "assistant",
+              modelId: s.activeModelId,
+              modelName: currentModel?.name || "GML AI",
+              content: "✦ **[Admin OP Mode Activated]** ปลดล็อคขีดจำกัดความยาวและปลดปล่อยศักยภาพสูงสุดเรียบร้อยแล้วครับ! ตอนนี้ AI จะตอบคำถามได้อย่างละเอียด ลึกซึ้ง เต็มประสิทธิภาพ และไม่จำกัดความยาว 300 คำ (พิมพ์ `/deop` เมื่อต้องการกลับสู่โหมดประหยัดปกติ)",
+              createdAt: new Date().toISOString(),
+              isStreaming: false,
+            };
+            return {
+              isOpMode: true,
+              composerText: "",
+              composerAttachments: [],
+              messages: {
+                ...s.messages,
+                [convId as string]: [...(s.messages[convId as string] || []), userMsg, opReply],
+              },
+            };
+          });
+          return;
+        }
+
+        // SECRET ADMIN DEOP COMMAND: /deop
+        if (promptText.toLowerCase() === "/deop") {
+          set((s) => {
+            const userMsg: Message = {
+              id: userMessageId,
+              conversationId: convId as string,
+              role: "user",
+              content: "/deop",
+              createdAt: new Date().toISOString(),
+            };
+            const deopReply: Message = {
+              id: assistantMessageId,
+              conversationId: convId as string,
+              role: "assistant",
+              modelId: s.activeModelId,
+              modelName: currentModel?.name || "GML AI",
+              content: "✦ **[Admin OP Mode Deactivated]** ปิดการปลดลิมิตเรียบร้อยแล้วครับ ระบบกลับสู่โหมดประหยัดโทเคนและตอบกระชับไม่เกิน 300 คำตามปกติ",
+              createdAt: new Date().toISOString(),
+              isStreaming: false,
+            };
+            return {
+              isOpMode: false,
+              composerText: "",
+              composerAttachments: [],
+              messages: {
+                ...s.messages,
+                [convId as string]: [...(s.messages[convId as string] || []), userMsg, deopReply],
+              },
+            };
+          });
+          return;
+        }
 
         const userMessage: Message = {
           id: userMessageId,
@@ -226,6 +297,7 @@ export const useChatStore = create<ChatState>()(
               prompt: fullPrompt,
               modelId: state.activeModelId,
               history,
+              isOpMode: state.isOpMode,
             }),
             signal: controller.signal,
           });
@@ -273,11 +345,12 @@ export const useChatStore = create<ChatState>()(
               }
             }
           } else {
-            // Direct client fallback
+            // Fallback direct provider streaming
             const provider = getAIProvider(currentModel?.provider);
-            const stream = provider.streamMessage(promptText, history, {
+            const stream = provider.streamMessage(fullPrompt, history, {
               modelId: state.activeModelId,
               signal: controller.signal,
+              isOpMode: state.isOpMode,
             });
 
             for await (const chunk of stream) {
@@ -302,8 +375,11 @@ export const useChatStore = create<ChatState>()(
               });
             }
           }
-        } catch (err: unknown) {
-          if ((err as Error).name !== "AbortError") {
+        } catch (error: unknown) {
+          if ((error as { name?: string })?.name === "AbortError") {
+            // User intentionally stopped generation
+          } else {
+            console.error("Chat generation failed:", error);
             set((s) => {
               const currentList = s.messages[convId as string] || [];
               return {
@@ -313,9 +389,11 @@ export const useChatStore = create<ChatState>()(
                     m.id === assistantMessageId
                       ? {
                           ...m,
-                          isError: true,
-                          errorMessage: "เกิดข้อผิดพลาดในการตอบกลับ โปรดลองใหม่อีกครั้ง",
+                          content:
+                            finalResponseText ||
+                            "ขออภัยครับ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง",
                           isStreaming: false,
+                          isError: !finalResponseText,
                         }
                       : m
                   ),
@@ -324,8 +402,11 @@ export const useChatStore = create<ChatState>()(
             });
           }
         } finally {
-          const thinkingTimeSeconds = Number(((performance.now() - startTime) / 1000).toFixed(1));
+          const endTime = performance.now();
+          const thinkingTimeSeconds = (endTime - startTime) / 1000;
           const tokensUsed = calculateTokensForRequest(promptText, finalResponseText.length);
+
+          // Deduct tokens
           useTokenStore.getState().consumeTokens(tokensUsed);
 
           set((s) => {
@@ -398,6 +479,7 @@ export const useChatStore = create<ChatState>()(
           const stream = provider.streamMessage(userMsg.content, history, {
             modelId: state.activeModelId,
             signal: controller.signal,
+            isOpMode: state.isOpMode,
           });
 
           for await (const chunk of stream) {
@@ -419,10 +501,12 @@ export const useChatStore = create<ChatState>()(
             }));
           }
         } catch {
-          // error handled
+          // ignore
         } finally {
-          const thinkingTimeSeconds = Number(((performance.now() - startTime) / 1000).toFixed(1));
+          const endTime = performance.now();
+          const thinkingTimeSeconds = (endTime - startTime) / 1000;
           const tokensUsed = calculateTokensForRequest(userMsg.content, finalResponseText.length);
+
           useTokenStore.getState().consumeTokens(tokensUsed);
 
           set((s) => ({
@@ -452,14 +536,14 @@ export const useChatStore = create<ChatState>()(
         if (!convId || state.isStreaming) return;
 
         const msgList = state.messages[convId] || [];
-        const editIdx = msgList.findIndex((m) => m.id === messageId);
-        if (editIdx === -1) return;
+        const targetIdx = msgList.findIndex((m) => m.id === messageId);
+        if (targetIdx === -1) return;
 
-        const prunedMessages = msgList.slice(0, editIdx);
+        const trimmedMessages = msgList.slice(0, targetIdx);
         set((s) => ({
           messages: {
             ...s.messages,
-            [convId]: prunedMessages,
+            [convId]: trimmedMessages,
           },
         }));
 
@@ -467,14 +551,13 @@ export const useChatStore = create<ChatState>()(
       },
 
       rateMessage: (messageId, rating) => {
-        const state = get();
-        const convId = state.activeConversationId;
-        if (!convId) return;
+        const { activeConversationId } = get();
+        if (!activeConversationId) return;
 
-        set((s) => ({
+        set((state) => ({
           messages: {
-            ...s.messages,
-            [convId]: (s.messages[convId] || []).map((m) =>
+            ...state.messages,
+            [activeConversationId]: (state.messages[activeConversationId] || []).map((m) =>
               m.id === messageId ? { ...m, rating } : m
             ),
           },
@@ -487,6 +570,7 @@ export const useChatStore = create<ChatState>()(
         conversations: state.conversations,
         messages: state.messages,
         activeModelId: state.activeModelId,
+        isOpMode: state.isOpMode,
       }),
     }
   )

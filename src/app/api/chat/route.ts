@@ -5,7 +5,7 @@ import { AVAILABLE_MODELS } from "@/lib/config/models";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, modelId, history = [], systemPrompt } = body;
+    const { prompt, modelId, history = [], systemPrompt, isOpMode } = body;
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
           const stream = provider.streamMessage(prompt, history, {
             modelId: modelId || "deepseek-chat",
             systemPrompt,
+            isOpMode: isOpMode === true,
           });
 
           for await (const chunk of stream) {
