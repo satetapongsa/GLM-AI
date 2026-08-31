@@ -41,53 +41,54 @@ export function Sidebar() {
     {
       id: "search",
       label: "ค้นหาแชท",
-      icon: <Search className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+      icon: <Search className="h-4 w-4 text-slate-300" />,
       onClick: () => setSearchModalOpen(true),
     },
     {
       id: "prompts",
       label: "พริพรอมต์",
-      icon: <FileText className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+      icon: <FileText className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("prompts"),
       active: activeTab === "prompts",
     },
     {
       id: "saved",
       label: "ชุดคำสั่งที่บันทึกไว้",
-      icon: <Bookmark className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+      icon: <Bookmark className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("saved"),
       active: activeTab === "saved",
     },
     {
       id: "library",
       label: "คลัง",
-      icon: <Star className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+      icon: <Star className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("library"),
       active: activeTab === "library",
     },
     {
       id: "learn",
       label: "เรียนรู้เกี่ยวกับ AI",
-      icon: <BookOpen className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+      icon: <BookOpen className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("learn"),
       active: activeTab === "learn",
     },
     {
       id: "folders",
       label: "โฟลเดอร์",
-      icon: <FolderPlus className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+      icon: <FolderPlus className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("folders"),
       active: activeTab === "folders",
     },
   ];
 
-  const currentUser = mounted ? user : BRAND_CONFIG.defaultUser;
-  const isUserAuthenticated = mounted ? isAuthenticated : true;
+  const isUserAuthenticated = mounted ? isAuthenticated : false;
+  const currentUser = mounted ? user : null;
 
   return (
     <aside
+      aria-label="แถบนำทางด้านข้าง"
       className={cn(
-        "h-screen flex flex-col bg-white dark:bg-[#0f172a] border-r border-slate-100 dark:border-slate-800 transition-all duration-200 select-none z-30 shrink-0",
+        "h-screen flex flex-col bg-[#1e1f20] border-r border-[rgba(255,255,255,0.08)] text-[#f1f5f9] transition-all duration-200 select-none z-30 shrink-0",
         isSidebarCollapsed ? "w-[64px]" : "w-[260px]"
       )}
     >
@@ -103,7 +104,7 @@ export function Sidebar() {
         <button
           onClick={toggleSidebar}
           aria-label={isSidebarCollapsed ? "ขยายแถบข้าง" : "ยุบแถบข้าง"}
-          className="p-1.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg text-slate-300 hover:bg-[#282a2c] transition-colors cursor-pointer"
         >
           <Menu className="h-5 w-5 stroke-[2.2]" />
         </button>
@@ -128,7 +129,7 @@ export function Sidebar() {
           <button
             onClick={() => setSearchModalOpen(true)}
             aria-label="ประวัติ"
-            className="h-10 w-10 rounded-full border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+            className="h-10 w-10 rounded-full border border-dashed border-slate-700 flex items-center justify-center text-slate-400 hover:bg-[#282a2c] hover:text-white transition-colors cursor-pointer shrink-0"
             title="ประวัติและค้นหา"
           >
             <Clock className="h-4 w-4" />
@@ -146,8 +147,8 @@ export function Sidebar() {
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-normal transition-colors cursor-pointer text-left",
                 item.active
-                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-850"
+                  ? "bg-[#282a2c] text-white font-medium shadow-2xs"
+                  : "text-slate-300 hover:bg-[#282a2c] hover:text-white"
               )}
               title={isSidebarCollapsed ? item.label : undefined}
             >
@@ -159,24 +160,24 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Auth & User Profile Section */}
-      <div className="p-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
+      <div className="p-3 border-t border-[rgba(255,255,255,0.08)] shrink-0">
         {isUserAuthenticated && currentUser ? (
-          <div className="flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+          <div className="flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-[#282a2c] transition-colors group">
             <div
               onClick={() => setActiveTab("settings")}
               className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
             >
-              {/* Orange Profile Circle */}
+              {/* Profile Avatar */}
               <div className="h-8.5 w-8.5 rounded-full bg-[#e65100] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                {currentUser.name.charAt(0).toUpperCase() || "U"}
+                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
               </div>
 
               {!isSidebarCollapsed && (
                 <div className="flex flex-col min-w-0 text-left leading-tight">
-                  <span className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+                  <span className="text-[13px] font-semibold text-slate-100 truncate">
                     {currentUser.name}
                   </span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                  <span className="text-[11px] text-slate-400 truncate">
                     {currentUser.email}
                   </span>
                 </div>
@@ -191,7 +192,7 @@ export function Sidebar() {
                     logout();
                   }
                 }}
-                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-all cursor-pointer"
                 title="ออกจากระบบ"
               >
                 <LogOut className="h-4 w-4" />
@@ -205,7 +206,7 @@ export function Sidebar() {
             onClick={() => openAuthModal("login")}
             className={cn(
               "w-full flex items-center justify-center gap-2 h-10 rounded-xl font-medium text-xs transition-all cursor-pointer",
-              "bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-700",
+              "bg-[#282a2c] hover:bg-[#333538] text-sky-400 border border-[rgba(255,255,255,0.08)]",
               isSidebarCollapsed ? "px-0" : "px-3"
             )}
             title="เข้าสู่ระบบ / สมัครสมาชิก"

@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  other: {
+    "color-scheme": "dark",
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,10 +47,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th" suppressHydrationWarning className={`dark ${inter.variable} ${notoSansThai.variable}`}>
+    <html
+      lang="th"
+      suppressHydrationWarning
+      className={`dark ${inter.variable} ${notoSansThai.variable}`}
+      style={{ colorScheme: "dark", backgroundColor: "#131314" }}
+    >
       <body
         className="min-h-screen bg-[#131314] text-[#f1f5f9] antialiased selection:bg-blue-500 selection:text-white"
-        style={{ fontFamily: "var(--font-thai), var(--font-inter), sans-serif" }}
+        style={{
+          fontFamily: "var(--font-thai), var(--font-inter), sans-serif",
+          colorScheme: "dark",
+          backgroundColor: "#131314",
+        }}
       >
         <AuthProvider>
           <ThemeProvider

@@ -41,7 +41,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#131314] text-[#f1f5f9]">
       {/* Background Silent Visitor IP Tracker */}
       <VisitorTracker />
 
@@ -54,9 +54,9 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <MobileDrawer />
 
       {/* Main Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[hsl(var(--background))]">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#131314]">
         <MobileHeader />
-        <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+        <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative bg-[#131314]">
           {renderActiveView()}
         </main>
       </div>

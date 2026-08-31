@@ -2,8 +2,10 @@
 
 @layer base {
   :root,
-  .dark {
-    /* Gemini Sleek Deep Dark Palette */
+  .dark,
+  html,
+  body {
+    /* Gemini Sleek Deep Dark Palette Locked Globally */
     --gml-primary: 217.2 91.2% 59.8%;
     --gml-primary-hover: 217.2 91.2% 65%;
     --gml-primary-soft: 217.2 91.2% 15%;
@@ -49,13 +51,11 @@
   box-sizing: border-box;
 }
 
-html {
-  color-scheme: dark;
-}
-
+html,
 body {
-  background-color: #131314;
-  color: #f1f5f9;
+  background-color: #131314 !important;
+  color: #f1f5f9 !important;
+  color-scheme: dark !important;
   font-family: var(--font-thai), var(--font-inter), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;

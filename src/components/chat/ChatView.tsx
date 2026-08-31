@@ -23,7 +23,7 @@ export function ChatView() {
   }, [currentMessages, isStreaming]);
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-[#ffffff] via-[#f6faff] to-[#eaf3ff] dark:from-[#090d16] dark:via-[#0b1120] dark:to-[#0f172a]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#131314] text-[#f1f5f9]">
       {/* Scrollable Message List or Welcome Screen */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 flex flex-col justify-between">
         {isWelcome ? (
