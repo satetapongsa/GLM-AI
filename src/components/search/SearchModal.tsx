@@ -5,7 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { formatRelativeTime } from "@/lib/utils/formatters";
-import { Search, MessageSquare, Pin, ArrowRight, Sparkles } from "lucide-react";
+import { Search, MessageSquare, Pin, ArrowRight, X } from "lucide-react";
 
 export function SearchModal() {
   const { isSearchModalOpen, setSearchModalOpen, setActiveTab } = useUIStore();
@@ -55,26 +55,32 @@ export function SearchModal() {
       showCloseButton={false}
     >
       <div className="space-y-4">
-        {/* Search Input Bar */}
-        <div className="relative flex items-center border-b border-[hsl(var(--border))] pb-3">
-          <Search className="h-5 w-5 text-[hsl(var(--muted-foreground))] mr-3 shrink-0" />
+        {/* Search Input Bar with Close [X] Button */}
+        <div className="relative flex items-center border-b border-[rgba(255,255,255,0.08)] pb-3">
+          <Search className="h-5 w-5 text-slate-400 mr-3 shrink-0" />
           <input
             type="text"
             autoFocus
             placeholder="ค้นหาข้อความ, หัวข้อแชท, หรือคำถาม..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-transparent text-sm sm:text-base text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none"
+            className="w-full bg-transparent text-sm sm:text-base text-[#f1f5f9] placeholder:text-slate-500 focus:outline-none"
           />
-          <kbd className="hidden sm:inline-block text-[10px] px-2 py-0.5 rounded bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] font-mono">
-            ESC
-          </kbd>
+          <button
+            type="button"
+            onClick={() => setSearchModalOpen(false)}
+            aria-label="ปิดหน้าต่างค้นหา"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#282a2c] transition-colors cursor-pointer shrink-0 ml-2"
+            title="ปิดหน้าต่าง"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Results List */}
         <div className="max-h-[380px] overflow-y-auto space-y-1 pr-1">
           {searchResults.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[hsl(var(--muted-foreground))]">
+            <div className="py-12 text-center text-xs text-slate-400">
               ไม่พบการสนทนาที่ตรงกับ &ldquo;{query}&rdquo;
             </div>
           ) : (
@@ -82,10 +88,10 @@ export function SearchModal() {
               <button
                 key={c.id}
                 onClick={() => handleSelect(c.id)}
-                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[hsl(var(--muted))] transition-colors text-left cursor-pointer group"
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#282a2c] transition-colors text-left cursor-pointer group"
               >
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--primary))] group-hover:bg-blue-500/10 transition-colors shrink-0 mt-0.5">
+                  <div className="p-2 rounded-lg bg-[#282a2c] text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-colors shrink-0 mt-0.5">
                     {c.pinned ? (
                       <Pin className="h-4 w-4 text-amber-500 fill-amber-500/20" />
                     ) : (
@@ -93,20 +99,20 @@ export function SearchModal() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h5 className="text-xs sm:text-sm font-semibold text-[hsl(var(--foreground))] truncate">
+                    <h5 className="text-xs sm:text-sm font-semibold text-[#f1f5f9] truncate">
                       {c.title}
                     </h5>
-                    <p className="text-[11px] text-[hsl(var(--muted-foreground))] truncate mt-0.5">
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       {c.lastMessageSnippet || "ไม่มีตัวอย่างข้อความ"}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0 ml-3">
-                  <span className="text-[10px] text-[hsl(var(--muted-foreground))] hidden sm:inline">
+                  <span className="text-[10px] text-slate-500 hidden sm:inline">
                     {formatRelativeTime(c.updatedAt)}
                   </span>
-                  <ArrowRight className="h-4 w-4 text-[hsl(var(--muted-foreground))] opacity-0 group-hover:opacity-100 transition-opacity group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity group-hover:translate-x-0.5" />
                 </div>
               </button>
             ))

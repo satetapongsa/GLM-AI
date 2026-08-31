@@ -16,7 +16,6 @@ import {
   Star,
   BookOpen,
   FolderPlus,
-  Clock,
   LogIn,
   LogOut,
 } from "lucide-react";
@@ -110,31 +109,20 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Primary Action: New Chat Pill + Clock/History button */}
-      <div className="px-3 pt-1 pb-3 flex items-center gap-2 shrink-0">
+      {/* Primary Action: Full-width New Chat Button */}
+      <div className="px-3 pt-1 pb-3 shrink-0">
         <button
           onClick={handleNewChat}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 h-10 rounded-full font-medium text-[13.5px] transition-all cursor-pointer",
+            "w-full flex items-center justify-center gap-2 h-10 rounded-full font-medium text-[13.5px] transition-all cursor-pointer",
             "bg-[#0b57d0] hover:bg-[#0842a0] text-white shadow-xs active:scale-[0.98]",
-            isSidebarCollapsed ? "px-0 w-10 flex-none mx-auto" : "px-4"
+            isSidebarCollapsed ? "px-0 w-10 mx-auto" : "px-4"
           )}
           title="แชทใหม่"
         >
           <SquarePen className="h-4 w-4 stroke-[2.2]" />
           {!isSidebarCollapsed && <span>แชทใหม่</span>}
         </button>
-
-        {!isSidebarCollapsed && (
-          <button
-            onClick={() => setSearchModalOpen(true)}
-            aria-label="ประวัติ"
-            className="h-10 w-10 rounded-full border border-dashed border-slate-700 flex items-center justify-center text-slate-400 hover:bg-[#282a2c] hover:text-white transition-colors cursor-pointer shrink-0"
-            title="ประวัติและค้นหา"
-          >
-            <Clock className="h-4 w-4" />
-          </button>
-        )}
       </div>
 
       {/* Main Navigation List */}
