@@ -6,6 +6,7 @@ import { useModelStore } from "@/lib/store/useModelStore";
 import { useTokenStore } from "@/lib/store/useTokenStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import { BRAND_CONFIG } from "@/lib/config/brand";
+import { AVAILABLE_MODELS } from "@/lib/config/models";
 import { AttachmentMenu } from "./AttachmentMenu";
 import { AttachmentPreview } from "./AttachmentPreview";
 import { ProviderIcon } from "@/components/ui/ProviderIcon";
@@ -42,7 +43,7 @@ export function ChatComposer() {
   }, []);
 
   const isUserAuth = mounted ? isAuthenticated : false;
-  const selectedModel = getSelectedModel();
+  const currentModel = mounted ? getSelectedModel() : AVAILABLE_MODELS[0];
   const displayUsedTokens = mounted ? usedTokensToday : 0;
   const displayDailyLimit = mounted ? dailyLimit : 1000;
   const displayRemaining = mounted ? getRemainingTokens() : 1000;
@@ -95,7 +96,7 @@ export function ChatComposer() {
   return (
     <div className="w-full max-w-[700px] mx-auto px-4 pb-4">
       {/* Outer Composer Container */}
-      <div className="relative flex flex-col rounded-[26px] bg-white dark:bg-[#0f172a] border border-[#3b82f6] shadow-sm px-4 pt-3.5 pb-2.5">
+      <div className="relative flex flex-col rounded-[26px] bg-[#1e1f20] border border-[#3b82f6] shadow-sm px-4 pt-3.5 pb-2.5">
         {/* Attachment Previews */}
         <AttachmentPreview
           attachments={composerAttachments}
@@ -115,7 +116,7 @@ export function ChatComposer() {
               ? BRAND_CONFIG.placeholderInput
               : "เข้าสู่ระบบด้วย Google หรือสมัครสมาชิกเพื่อเริ่มพิมพ์ถาม AI..."
           }
-          className="w-full min-h-[28px] max-h-[140px] bg-transparent border-0 resize-none py-1 px-1 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none scrollbar-none leading-relaxed"
+          className="w-full min-h-[28px] max-h-[140px] bg-transparent border-0 resize-none py-1 px-1 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none scrollbar-none leading-relaxed"
         />
 
         {/* Bottom Actions Row: Left (+) and Model Badge + Token Badge, Right Send/Plane button */}
@@ -134,7 +135,7 @@ export function ChatComposer() {
                 }}
                 aria-label="แนบไฟล์หรือรูปภาพ"
                 className={cn(
-                  "h-7 w-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700"
+                  "h-7 w-7 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center transition-colors cursor-pointer hover:bg-slate-700"
                 )}
               >
                 <Plus className={cn("h-4 w-4 transition-transform duration-200", isAttachmentMenuOpen && "rotate-45")} />
@@ -152,11 +153,12 @@ export function ChatComposer() {
             <button
               type="button"
               onClick={openModelModal}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[12px] font-medium transition-colors cursor-pointer"
+              suppressHydrationWarning
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[12px] font-medium transition-colors cursor-pointer"
             >
-              <ProviderIcon provider={selectedModel.provider} size="sm" />
-              <span className="truncate max-w-[150px] sm:max-w-[200px]">
-                {selectedModel.name}
+              <ProviderIcon provider={currentModel.provider} size="sm" />
+              <span suppressHydrationWarning className="truncate max-w-[150px] sm:max-w-[200px]">
+                {currentModel.name}
               </span>
               <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
@@ -165,11 +167,11 @@ export function ChatComposer() {
             {isUserAuth ? (
               <div
                 suppressHydrationWarning
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] font-medium text-slate-600 dark:text-slate-400 select-none"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-medium text-slate-400 select-none"
                 title={`โควต้าประจำวัน: ใช้ไปแล้ว ${displayUsedTokens} / ${displayDailyLimit} โทเคน (เหลือ ${displayRemaining} โทเคน)`}
               >
                 <Coins className="h-3 w-3 text-amber-500 shrink-0" />
-                <span suppressHydrationWarning className="font-semibold text-slate-800 dark:text-slate-200">
+                <span suppressHydrationWarning className="font-semibold text-slate-200">
                   {displayUsedTokens}
                 </span>
                 <span suppressHydrationWarning className="text-slate-400">
@@ -180,9 +182,9 @@ export function ChatComposer() {
               <button
                 type="button"
                 onClick={() => openAuthModal("login")}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 cursor-pointer transition-colors select-none"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/40 border border-amber-800 text-[11px] font-medium text-amber-300 hover:bg-amber-900/50 cursor-pointer transition-colors select-none"
               >
-                <Lock className="h-3 w-3 text-amber-500 shrink-0" />
+                <Lock className="h-3 w-3 text-amber-400 shrink-0" />
                 <span>เข้าสู่ระบบก่อนเริ่มถาม</span>
               </button>
             )}
@@ -211,7 +213,7 @@ export function ChatComposer() {
                     ? "bg-[#0b57d0] text-white hover:bg-[#0842a0] active:scale-95 shadow-xs"
                     : !isUserAuth
                     ? "bg-[#0b57d0] text-white hover:bg-[#0842a0] active:scale-95 shadow-xs"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                    : "bg-slate-800 text-slate-600 cursor-not-allowed"
                 )}
                 title={isUserAuth ? "ส่งข้อความ (Enter)" : "เข้าสู่ระบบเพื่อส่งข้อความ"}
               >
@@ -223,7 +225,7 @@ export function ChatComposer() {
       </div>
 
       {/* Disclaimer */}
-      <p className="mt-2 text-center text-[11px] text-slate-500 dark:text-slate-400 select-none">
+      <p className="mt-2 text-center text-[11px] text-slate-500 select-none">
         {BRAND_CONFIG.disclaimer}
       </p>
     </div>
