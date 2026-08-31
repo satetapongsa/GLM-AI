@@ -11,6 +11,16 @@ export interface DbUser {
   last_login_at?: string;
 }
 
+export interface DbMedia {
+  id: number;
+  user_email: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  media_data: string;
+  uploaded_at: string;
+}
+
 export function getDb() {
   const connectionString =
     process.env.DATABASE_URL ||
@@ -184,4 +194,37 @@ export async function saveUploadedMedia(data: {
   `;
 
   return result[0];
+}
+
+export async function getMediaById(id: number): Promise<DbMedia | null> {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  const rows = await sql`
+    SELECT id, user_email, file_name, file_type, file_size, media_data, uploaded_at
+    FROM uploaded_media
+    WHERE id = ${id}
+    LIMIT 1;
+  `;
+
+  if (rows.length === 0) return null;
+  return rows[0] as DbMedia;
+}
+
+export async function getAllUploadedMedia(limit = 50): Promise<Omit<DbMedia, "media_data">[]> {
+  const sql = getDb();
+  if (!sql) return [];
+
+  await ensureTablesExist();
+
+  const rows = await sql`
+    SELECT id, user_email, file_name, file_type, file_size, uploaded_at
+    FROM uploaded_media
+    ORDER BY uploaded_at DESC
+    LIMIT ${limit};
+  `;
+
+  return rows as Omit<DbMedia, "media_data">[];
 }

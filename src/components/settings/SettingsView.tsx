@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSettingsStore } from "@/lib/store/useSettingsStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
@@ -23,6 +23,8 @@ import {
   Copy,
   BadgeCheck,
   Sparkles,
+  Image as ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -34,6 +36,16 @@ type SettingsTab =
   | "account"
   | "creator";
 
+interface MediaItem {
+  id: number;
+  user_email: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  uploaded_at: string;
+  viewUrl: string;
+}
+
 export function SettingsView() {
   const { settings, updateSettings } = useSettingsStore();
   const { clearAllConversations, conversations, messages } = useChatStore();
@@ -42,6 +54,31 @@ export function SettingsView() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [isSaved, setIsSaved] = useState(false);
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
+
+  // Live media list from Neon
+  const [mediaList, setMediaList] = useState<MediaItem[]>([]);
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+
+  const fetchMedia = async () => {
+    setIsLoadingMedia(true);
+    try {
+      const res = await fetch("/api/media/list");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setMediaList(data.data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingMedia(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "creator") {
+      fetchMedia();
+    }
+  }, [activeTab]);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -76,7 +113,7 @@ export function SettingsView() {
     { id: "shortcuts", label: "คีย์ลัด (Shortcuts)", icon: <Keyboard className="h-4 w-4" /> },
     { id: "privacy", label: "ความเป็นส่วนตัว & ข้อมูล", icon: <Shield className="h-4 w-4" /> },
     { id: "account", label: "บัญชีผู้ใช้ (Account)", icon: <User className="h-4 w-4" /> },
-    { id: "creator", label: "ผู้พัฒนา & ผู้สร้าง (Creator)", icon: <Code2 className="h-4 w-4 text-amber-400" /> },
+    { id: "creator", label: "ผู้พัฒนา & คลังรูปภาพ Neon (Creator)", icon: <Code2 className="h-4 w-4 text-amber-400" /> },
   ];
 
   return (
@@ -131,7 +168,7 @@ export function SettingsView() {
 
         {/* Right Content Panel */}
         <div className="md:col-span-3 p-6 rounded-3xl bg-[#1e1f20] border border-[rgba(255,255,255,0.08)] shadow-sm space-y-6 text-xs sm:text-sm text-[#f1f5f9]">
-          {/* Creator Profile Tab */}
+          {/* Creator Profile & Neon Media Storage Tab */}
           {activeTab === "creator" && (
             <div className="space-y-6 animate-fade-up">
               <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-3">
@@ -276,6 +313,88 @@ export function SettingsView() {
                     </a>
                   </div>
                 </div>
+              </div>
+
+              {/* Neon Media Storage Gallery Section */}
+              <div className="space-y-4 pt-4 border-t border-[rgba(255,255,255,0.08)]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-base font-bold text-[#f1f5f9] flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-emerald-400" />
+                      <span>คลังรูปภาพที่บันทึกลง Neon PostgreSQL</span>
+                    </h4>
+                    <p className="text-xs text-[#94a3b8]">
+                      รูปภาพทั้งหมดที่ผู้ใช้อัปโหลดเข้ามา จะถูกเก็บลงฐานข้อมูล Neon โดยตรง (คลิกเพื่อเปิดดูภาพเต็ม)
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={fetchMedia}
+                    disabled={isLoadingMedia}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#131314] hover:bg-[#282a2c] text-xs font-medium text-slate-300 border border-[rgba(255,255,255,0.08)] transition-colors cursor-pointer"
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", isLoadingMedia && "animate-spin text-blue-400")} />
+                    <span>รีเฟรชรูปภาพ</span>
+                  </button>
+                </div>
+
+                {isLoadingMedia ? (
+                  <div className="py-8 text-center text-xs text-slate-400 animate-pulse">
+                    กำลังโหลดรูปภาพจาก Neon PostgreSQL...
+                  </div>
+                ) : mediaList.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400 bg-[#131314] rounded-2xl border border-[rgba(255,255,255,0.06)]">
+                    ยังไม่มีรูปภาพในฐานข้อมูล Neon (ลองอัปโหลดรูปในหน้าแชท แล้วกดรีเฟรชดูได้เลยครับ)
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {mediaList.map((m) => (
+                      <div
+                        key={m.id}
+                        className="group relative rounded-2xl overflow-hidden bg-[#131314] border border-[rgba(255,255,255,0.08)] hover:border-blue-500/50 transition-all flex flex-col"
+                      >
+                        {/* Thumbnail View */}
+                        <div className="aspect-video w-full bg-slate-900 overflow-hidden relative flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={m.viewUrl}
+                            alt={m.file_name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            loading="lazy"
+                          />
+                        </div>
+
+                        {/* Details */}
+                        <div className="p-2.5 space-y-1 flex-1 flex flex-col justify-between">
+                          <div>
+                            <p className="text-[11px] font-semibold text-slate-200 truncate" title={m.file_name}>
+                              {m.file_name}
+                            </p>
+                            <p className="text-[10px] text-slate-400 truncate">
+                              โดย: {m.user_email}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 flex items-center justify-between border-t border-[rgba(255,255,255,0.06)]">
+                            <span className="text-[9.5px] text-slate-500 font-mono">
+                              #{m.id}
+                            </span>
+                            <a
+                              href={m.viewUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              <span>เปิดดูภาพเต็ม</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
