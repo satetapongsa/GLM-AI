@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAIProvider } from "@/lib/providers";
+import { AVAILABLE_MODELS } from "@/lib/config/models";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, modelId, history = [] } = body;
+    const { prompt, modelId, history = [], systemPrompt } = body;
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    const provider = getAIProvider();
+    const currentModel = AVAILABLE_MODELS.find((m) => m.id === modelId);
+    const providerName = currentModel?.provider || "DeepSeek";
+    const provider = getAIProvider(providerName);
 
     // Create a streaming response
     const encoder = new TextEncoder();
@@ -18,11 +21,21 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         try {
           const stream = provider.streamMessage(prompt, history, {
-            modelId: modelId || "gemini-3.1-pro",
+            modelId: modelId || "deepseek-chat",
+            systemPrompt,
           });
 
           for await (const chunk of stream) {
-            controller.enqueue(encoder.encode(chunk.delta));
+            // Encode as JSON SSE payload so client gets both content and reasoning traces
+            const payload = JSON.stringify({
+              delta: chunk.delta,
+              content: chunk.content,
+              reasoningDelta: chunk.reasoningDelta,
+              reasoningContent: chunk.reasoningContent,
+              isComplete: chunk.isComplete,
+            }) + "\n";
+
+            controller.enqueue(encoder.encode(payload));
           }
           controller.close();
         } catch (err) {
@@ -33,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     return new Response(customReadable, {
       headers: {
-        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Type": "application/x-ndjson; charset=utf-8",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       },

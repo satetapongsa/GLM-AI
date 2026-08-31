@@ -205,32 +205,89 @@ export const useChatStore = create<ChatState>()(
             .filter((m) => m.id !== assistantMessageId)
             .map((m) => ({ role: m.role, content: m.content }));
 
-          const provider = getAIProvider(currentModel?.provider);
-          const stream = provider.streamMessage(promptText, history, {
-            modelId: state.activeModelId,
+          // Try calling Next.js streaming API route first
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: promptText,
+              modelId: state.activeModelId,
+              history,
+            }),
             signal: controller.signal,
           });
 
-          for await (const chunk of stream) {
-            finalResponseText = chunk.content;
-            set((s) => {
-              const currentList = s.messages[convId as string] || [];
-              return {
-                messages: {
-                  ...s.messages,
-                  [convId as string]: currentList.map((m) =>
-                    m.id === assistantMessageId
-                      ? {
-                          ...m,
-                          content: chunk.content,
-                          reasoning: chunk.reasoningContent,
-                          isStreaming: !chunk.isComplete,
-                        }
-                      : m
-                  ),
-                },
-              };
+          if (response.ok && response.body) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop() || "";
+
+              for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                  const payload = JSON.parse(line);
+                  finalResponseText = payload.content || finalResponseText;
+
+                  set((s) => {
+                    const currentList = s.messages[convId as string] || [];
+                    return {
+                      messages: {
+                        ...s.messages,
+                        [convId as string]: currentList.map((m) =>
+                          m.id === assistantMessageId
+                            ? {
+                                ...m,
+                                content: payload.content,
+                                reasoning: payload.reasoningContent,
+                                isStreaming: !payload.isComplete,
+                              }
+                            : m
+                        ),
+                      },
+                    };
+                  });
+                } catch {
+                  // partial chunk
+                }
+              }
+            }
+          } else {
+            // Direct client fallback
+            const provider = getAIProvider(currentModel?.provider);
+            const stream = provider.streamMessage(promptText, history, {
+              modelId: state.activeModelId,
+              signal: controller.signal,
             });
+
+            for await (const chunk of stream) {
+              finalResponseText = chunk.content;
+              set((s) => {
+                const currentList = s.messages[convId as string] || [];
+                return {
+                  messages: {
+                    ...s.messages,
+                    [convId as string]: currentList.map((m) =>
+                      m.id === assistantMessageId
+                        ? {
+                            ...m,
+                            content: chunk.content,
+                            reasoning: chunk.reasoningContent,
+                            isStreaming: !chunk.isComplete,
+                          }
+                        : m
+                    ),
+                  },
+                };
+              });
+            }
           }
         } catch (err: unknown) {
           if ((err as Error).name !== "AbortError") {
