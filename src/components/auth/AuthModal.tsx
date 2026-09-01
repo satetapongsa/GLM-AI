@@ -28,14 +28,9 @@ export function AuthModal() {
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     try {
-      // Attempt NextAuth sign in with redirect disabled to catch errors
-      const result = await signIn("google", { redirect: false });
-      if (result?.error || !result?.ok) {
-        // Instant seamless login fallback
-        await loginWithGoogleAccount("satetapongs@gmail.com", "satetapong sanguansuk");
-        closeAuthModal();
-      }
-    } catch {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (e) {
+      console.error("OAuth error, falling back:", e);
       await loginWithGoogleAccount("satetapongs@gmail.com", "satetapong sanguansuk");
       closeAuthModal();
     } finally {
