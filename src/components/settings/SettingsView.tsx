@@ -50,7 +50,7 @@ type SettingsTab =
 export function SettingsView() {
   const { settings, updateSettings } = useSettingsStore();
   const { clearAllConversations, conversations, messages } = useChatStore();
-  const { user, isAuthenticated, logout, openAuthModal } = useAuthStore();
+  const { user, isAuthenticated, logout, openAuthModal, openLogoutConfirm } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [isSaved, setIsSaved] = useState(false);
@@ -866,13 +866,9 @@ export function SettingsView() {
 
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      if (confirm("ต้องการออกจากระบบหรือไม่?")) {
-                        logout();
-                      }
-                    }}
+                    onClick={() => openLogoutConfirm()}
                     leftIcon={<LogOut className="h-4 w-4 text-red-400" />}
-                    className="text-red-400 border-red-900/40 hover:bg-red-950/20"
+                    className="text-red-400 border-red-900/40 hover:bg-red-950/20 cursor-pointer"
                   >
                     ออกจากระบบ
                   </Button>

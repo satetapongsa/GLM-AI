@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
@@ -19,6 +21,10 @@ import {
   MessageSquare,
   Pin,
   Trash2,
+  Pencil,
+  Check,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -28,12 +34,16 @@ export function Sidebar() {
     setActiveConversation,
     togglePinConversation,
     deleteConversation,
+    renameConversation,
   } = useChatStore();
 
   const { isSidebarCollapsed, toggleSidebar, setSearchModalOpen, activeTab, setActiveTab } =
     useUIStore();
-  const { user, isAuthenticated, openAuthModal, logout } = useAuthStore();
+  const { user, isAuthenticated, openAuthModal, openLogoutConfirm } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [editingConvId, setEditingConvId] = useState<string | null>(null);
+  const [editTitleInput, setEditTitleInput] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -169,6 +179,7 @@ export function Sidebar() {
             <div className="space-y-0.5">
               {pinnedConversations.map((c) => {
                 const isActive = activeTab === "chat" && activeConversationId === c.id;
+                const isEditing = editingConvId === c.id;
                 return (
                   <div
                     key={c.id}
@@ -178,18 +189,73 @@ export function Sidebar() {
                         ? "bg-[#0b57d0]/20 border border-[#0b57d0]/40 text-white font-medium"
                         : "text-slate-300 hover:bg-[#282a2c] hover:text-white"
                     )}
-                    onClick={() => handleSelectConversation(c.id)}
+                    onClick={() => {
+                      if (!isEditing) handleSelectConversation(c.id);
+                    }}
                     title={c.title}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <Pin className="h-3.5 w-3.5 text-amber-400 shrink-0 fill-amber-400/20" />
                       {!isSidebarCollapsed && (
-                        <span className="truncate">{c.title}</span>
+                        isEditing ? (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (editTitleInput.trim()) {
+                                renameConversation(c.id, editTitleInput.trim());
+                              }
+                              setEditingConvId(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 flex-1 min-w-0 mr-1"
+                          >
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editTitleInput}
+                              onChange={(e) => setEditTitleInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Escape") setEditingConvId(null);
+                              }}
+                              className="w-full bg-[#131314] text-white text-xs px-2 py-0.5 rounded border border-blue-500 outline-none"
+                            />
+                            <button
+                              type="submit"
+                              className="p-1 text-emerald-400 hover:text-emerald-300 rounded hover:bg-emerald-950/40 cursor-pointer shrink-0"
+                              title="บันทึกชื่อ"
+                            >
+                              <Check className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingConvId(null)}
+                              className="p-1 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-700/50 cursor-pointer shrink-0"
+                              title="ยกเลิก"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </form>
+                        ) : (
+                          <span className="truncate">{c.title}</span>
+                        )
                       )}
                     </div>
 
-                    {!isSidebarCollapsed && (
+                    {!isSidebarCollapsed && !isEditing && (
                       <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 ml-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingConvId(c.id);
+                            setEditTitleInput(c.title);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-blue-400 hover:bg-slate-700/50 transition-colors"
+                          title="เปลี่ยนชื่อแชท"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -205,7 +271,7 @@ export function Sidebar() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteConversation(c.id);
+                            setDeleteConfirmId(c.id);
                           }}
                           className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-colors"
                           title="ลบแชท"
@@ -239,6 +305,7 @@ export function Sidebar() {
             ) : (
               recentConversations.map((c) => {
                 const isActive = activeTab === "chat" && activeConversationId === c.id;
+                const isEditing = editingConvId === c.id;
                 return (
                   <div
                     key={c.id}
@@ -248,18 +315,73 @@ export function Sidebar() {
                         ? "bg-[#0b57d0]/20 border border-[#0b57d0]/40 text-white font-medium"
                         : "text-slate-300 hover:bg-[#282a2c] hover:text-white"
                     )}
-                    onClick={() => handleSelectConversation(c.id)}
+                    onClick={() => {
+                      if (!isEditing) handleSelectConversation(c.id);
+                    }}
                     title={c.title}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <MessageSquare className="h-3.5 w-3.5 text-slate-400 shrink-0 group-hover:text-blue-400 transition-colors" />
                       {!isSidebarCollapsed && (
-                        <span className="truncate">{c.title}</span>
+                        isEditing ? (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (editTitleInput.trim()) {
+                                renameConversation(c.id, editTitleInput.trim());
+                              }
+                              setEditingConvId(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 flex-1 min-w-0 mr-1"
+                          >
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editTitleInput}
+                              onChange={(e) => setEditTitleInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Escape") setEditingConvId(null);
+                              }}
+                              className="w-full bg-[#131314] text-white text-xs px-2 py-0.5 rounded border border-blue-500 outline-none"
+                            />
+                            <button
+                              type="submit"
+                              className="p-1 text-emerald-400 hover:text-emerald-300 rounded hover:bg-emerald-950/40 cursor-pointer shrink-0"
+                              title="บันทึกชื่อ"
+                            >
+                              <Check className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingConvId(null)}
+                              className="p-1 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-700/50 cursor-pointer shrink-0"
+                              title="ยกเลิก"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </form>
+                        ) : (
+                          <span className="truncate">{c.title}</span>
+                        )
                       )}
                     </div>
 
-                    {!isSidebarCollapsed && (
+                    {!isSidebarCollapsed && !isEditing && (
                       <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 ml-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingConvId(c.id);
+                            setEditTitleInput(c.title);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-blue-400 hover:bg-slate-700/50 transition-colors"
+                          title="เปลี่ยนชื่อแชท"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -275,7 +397,7 @@ export function Sidebar() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteConversation(c.id);
+                            setDeleteConfirmId(c.id);
                           }}
                           className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-colors"
                           title="ลบแชท"
@@ -320,11 +442,7 @@ export function Sidebar() {
             {!isSidebarCollapsed && (
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm("คุณต้องการออกจากระบบหรือไม่?")) {
-                    logout();
-                  }
-                }}
+                onClick={() => openLogoutConfirm()}
                 className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-all cursor-pointer"
                 title="ออกจากระบบ"
               >
@@ -349,6 +467,51 @@ export function Sidebar() {
           </button>
         )}
       </div>
+
+      {/* Delete Chat Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        maxWidth="sm"
+        title={
+          <div className="flex items-center gap-2.5 text-red-400">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-base font-bold text-white">ลบการสนทนานี้?</span>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            คุณแน่ใจหรือไม่ว่าต้องการลบแชทนี้? ประวัติข้อความทั้งหมดในการสนทนานี้จะถูกลบอย่างถาวร
+          </p>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteConfirmId(null)}
+              className="px-4 py-2 text-xs cursor-pointer"
+            >
+              ยกเลิก
+            </Button>
+
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                if (deleteConfirmId) {
+                  deleteConversation(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }
+              }}
+              leftIcon={<Trash2 className="h-4 w-4" />}
+              className="bg-red-600 hover:bg-red-700 text-white border-transparent px-4 py-2 text-xs font-semibold shadow-md cursor-pointer active:scale-95"
+            >
+              ลบแชท
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 }

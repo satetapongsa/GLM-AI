@@ -21,22 +21,20 @@ const notoSansThai = Noto_Sans_Thai({
 export const metadata: Metadata = {
   metadataBase: new URL("https://goomairu.vercel.app"),
   title: {
-    default: "Goomiru — AI Workspace อัจฉริยะ",
+    default: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย",
     template: `%s | ${BRAND_CONFIG.name}`,
   },
-  description: "ผู้ช่วยอัจฉริยะภาษาไทย และ Multi-Model AI Workspace ขับเคลื่อนด้วย DeepSeek",
+  description: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม คิดไอเดีย เขียนโค้ด และช่วยทำงานได้อย่างรวดเร็ว",
   keywords: [
-    "Goomiru",
-    "Goomiru AI",
-    "GML",
-    "DeepSeek AI",
+    "Goomairu",
+    "Goomairu AI",
     "Thai AI",
     "ผู้ช่วย AI ภาษาไทย",
     "AI Chatbot",
   ],
   authors: [{ name: "satetapong sanguansuk" }],
   creator: "satetapong sanguansuk",
-  publisher: "Goomiru AI",
+  publisher: "Goomairu AI",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -46,17 +44,17 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "Goomiru — AI Workspace อัจฉริยะ",
-    description: "ผู้ช่วยอัจฉริยะภาษาไทย และ Multi-Model AI Workspace ขับเคลื่อนด้วย DeepSeek",
+    title: "Goomairu AI",
+    description: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม คิดไอเดีย และช่วยทำงานได้ทุกรูปแบบ",
     url: "https://goomairu.vercel.app",
-    siteName: "Goomiru AI",
+    siteName: "Goomairu AI",
     locale: "th_TH",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Goomiru — AI Workspace อัจฉริยะ",
-    description: "ผู้ช่วยอัจฉริยะภาษาไทย และ Multi-Model AI Workspace ขับเคลื่อนด้วย DeepSeek",
+    title: "Goomairu AI",
+    description: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม คิดไอเดีย และช่วยทำงานได้ทุกรูปแบบ",
   },
   other: {
     "color-scheme": "dark",

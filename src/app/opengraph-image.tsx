@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Goomiru AI";
+export const alt = "Goomairu AI";
 export const size = {
   width: 1200,
   height: 630,
@@ -98,7 +98,7 @@ export default async function Image() {
                 lineHeight: "1",
               }}
             >
-              Goomiru
+              Goomairu
             </span>
             <span
               style={{

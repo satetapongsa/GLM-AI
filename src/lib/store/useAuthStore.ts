@@ -15,6 +15,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isAuthModalOpen: boolean;
   authModalMode: "login" | "register";
+  isLogoutConfirmOpen: boolean;
 
   // Actions
   login: (email: string, password?: string) => Promise<boolean>;
@@ -25,6 +26,8 @@ interface AuthState {
   openAuthModal: (mode?: "login" | "register") => void;
   closeAuthModal: () => void;
   setAuthModalMode: (mode: "login" | "register") => void;
+  openLogoutConfirm: () => void;
+  closeLogoutConfirm: () => void;
 }
 
 function syncUserToDb(user: AuthUser, authProvider = "email") {
@@ -51,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isAuthModalOpen: false,
       authModalMode: "login",
+      isLogoutConfirmOpen: false,
 
       login: async (email: string) => {
         const cleanEmail = email.trim();
@@ -144,6 +148,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
           isAuthModalOpen: false,
+          isLogoutConfirmOpen: false,
         });
       },
 
@@ -153,9 +158,13 @@ export const useAuthStore = create<AuthState>()(
       closeAuthModal: () => set({ isAuthModalOpen: false }),
 
       setAuthModalMode: (mode) => set({ authModalMode: mode }),
+
+      openLogoutConfirm: () => set({ isLogoutConfirmOpen: true }),
+
+      closeLogoutConfirm: () => set({ isLogoutConfirmOpen: false }),
     }),
     {
-      name: "goomiru-auth-storage",
+      name: "goomairu-auth-storage",
     }
   )
 );

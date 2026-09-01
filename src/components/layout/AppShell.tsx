@@ -7,6 +7,7 @@ import { MobileDrawer } from "./MobileDrawer";
 import { SearchModal } from "@/components/search/SearchModal";
 import { ModelSelectorModal } from "@/components/models/ModelSelectorModal";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 import { VisitorTracker } from "@/components/analytics/VisitorTracker";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { ChatView } from "@/components/chat/ChatView";
@@ -62,6 +63,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <SearchModal />
       <ModelSelectorModal />
       <AuthModal />
+      <LogoutConfirmModal />
     </div>
   );
 }

@@ -21,7 +21,7 @@ import {
 export function UserProfileMenu({ collapsed = false }: { collapsed?: boolean }) {
   const { theme, setTheme } = useTheme();
   const { setActiveTab } = useUIStore();
-  const { user, isAuthenticated, logout, openAuthModal } = useAuthStore();
+  const { user, isAuthenticated, openLogoutConfirm, openAuthModal } = useAuthStore();
 
   const cycleTheme = () => {
     if (theme === "dark") setTheme("light");
@@ -69,7 +69,7 @@ export function UserProfileMenu({ collapsed = false }: { collapsed?: boolean }) 
       label: "ออกจากระบบ",
       icon: <LogOut className="h-4 w-4 text-red-500" />,
       destructive: true,
-      onClick: () => logout(),
+      onClick: () => openLogoutConfirm(),
       dividerBefore: true,
     },
   ];

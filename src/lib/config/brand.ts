@@ -1,6 +1,6 @@
 /**
- * BRAND CONFIGURATION - Goomiru (GooMiRu)
- * Single source of truth for Goomiru branding, logo, names, and visual identity.
+ * BRAND CONFIGURATION - Goomairu (Goomairu AI)
+ * Single source of truth for Goomairu branding, logo, names, and visual identity.
  */
 
 export interface BrandConfig {
@@ -30,26 +30,26 @@ export interface BrandConfig {
 }
 
 export const BRAND_CONFIG: BrandConfig = {
-  name: "Goomiru",
-  fullName: "Goomiru AI",
-  thaiName: "กูไม่รู้เอไอ (Goomiru)",
-  welcomeTitle: "ยินดีต้อนรับสู่ Goomiru AI",
-  welcomeSubtitle: "วันนี้อยากให้ Goomiru ช่วยเรื่องอะไรครับ",
-  placeholderInput: "ถามอะไร Goomiru ได้เลย...",
+  name: "Goomairu",
+  fullName: "Goomairu AI",
+  thaiName: "กูไม่รู้เอไอ (Goomairu)",
+  welcomeTitle: "ยินดีต้อนรับสู่ Goomairu AI",
+  welcomeSubtitle: "วันนี้อยากให้ Goomairu ช่วยเรื่องอะไรครับ",
+  placeholderInput: "ถามอะไร Goomairu ได้เลย...",
   disclaimer: "AI อาจผิดพลาดได้ หลีกเลี่ยงการใส่ข้อมูลส่วนตัวหรือความลับ",
   logo: {
     badge: "AI",
   },
   meta: {
-    title: "Goomiru — AI Workspace อัจฉริยะ",
-    description: "แพลตฟอร์ม AI Chat และ Multi-Model Workspace อัจฉริยะ ขับเคลื่อนด้วย DeepSeek",
-    keywords: ["Goomiru", "Goomiru AI", "GML", "AI Chat", "Thai AI", "Next.js"],
+    title: "Goomairu AI",
+    description: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม คิดไอเดีย และช่วยทำงานได้ทุกรูปแบบ",
+    keywords: ["Goomairu", "Goomairu AI", "AI Chat", "Thai AI", "Next.js"],
   },
   defaultUser: {
     id: "guest-user",
     name: "ผู้ใช้ทั่วไป",
     username: "guest",
-    email: "guest@goomiru.ai",
+    email: "guest@goomairu.ai",
     avatar: "",
     role: "Guest",
   },
