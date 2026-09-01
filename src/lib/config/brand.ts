@@ -46,11 +46,11 @@ export const BRAND_CONFIG: BrandConfig = {
     keywords: ["Goomiru", "Goomiru AI", "GML", "AI Chat", "Thai AI", "Next.js"],
   },
   defaultUser: {
-    id: "user-1",
-    name: "satetapong sanguansuk",
-    username: "satetapong",
-    email: "satetapongs@gmail.com",
+    id: "guest-user",
+    name: "ผู้ใช้ทั่วไป",
+    username: "guest",
+    email: "guest@goomiru.ai",
     avatar: "",
-    role: "User",
+    role: "Guest",
   },
 };
