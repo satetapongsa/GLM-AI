@@ -332,7 +332,7 @@ export function SettingsView() {
                       <div className="min-w-0">
                         <span className="text-[10px] text-[#64748b] block">GitHub Repository</span>
                         <a
-                          href="https://github.com/satetapongsa/Goomiru"
+                          href="https://github.com/satetapongsa/Goomairu"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs font-semibold text-blue-400 hover:underline flex items-center gap-1 truncate"
@@ -344,7 +344,7 @@ export function SettingsView() {
                     </div>
 
                     <a
-                      href="https://github.com/satetapongsa/Goomiru"
+                      href="https://github.com/satetapongsa/Goomairu"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-white transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
