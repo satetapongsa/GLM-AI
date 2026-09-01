@@ -27,30 +27,19 @@ export function WelcomeScreen() {
         {BRAND_CONFIG.welcomeSubtitle}
       </p>
 
-      {/* Central GML 4-Pointed AI Diamond Star with Floating Orb */}
-      <div className="my-6 relative flex items-center justify-center animate-soft-float">
-        <svg
-          viewBox="0 0 100 100"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-28 w-28 text-[#0b57d0] drop-shadow-sm"
-        >
-          {/* Main 4-pointed diamond star */}
-          <path
-            d="M50 8C50 30 70 50 92 50C70 50 50 70 50 92C50 70 30 50 8 50C30 50 50 30 50 8Z"
-            fill="url(#sparkle-grad)"
-          />
-          {/* Floating Orb at top right */}
-          <circle cx="78" cy="22" r="5.5" fill="#0b57d0" />
+      {/* Central Goomiru Supernova Crystal & Quantum Orbit Emblem */}
+      <div className="my-7 relative flex items-center justify-center animate-soft-float">
+        {/* Soft Ambient Glow Effect */}
+        <div className="absolute h-36 w-36 rounded-full bg-gradient-to-tr from-blue-600/25 via-sky-400/20 to-purple-500/25 blur-2xl pointer-events-none" />
 
-          <defs>
-            <linearGradient id="sparkle-grad" x1="8" y1="8" x2="92" y2="92" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#0842a0" />
-              <stop offset="0.5" stopColor="#0b57d0" />
-              <stop offset="1" stopColor="#38bdf8" />
-            </linearGradient>
-          </defs>
-        </svg>
+        <div className="relative h-28 w-28 sm:h-32 sm:w-32 drop-shadow-[0_0_30px_rgba(56,189,248,0.45)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icon.svg"
+            alt="Goomiru Logo"
+            className="w-full h-full object-contain select-none"
+          />
+        </div>
       </div>
 
       {/* Sign In CTA if not authenticated */}
