@@ -88,6 +88,8 @@ export type AIProviderName =
   | "DeepSeek"
   | "xAI"
   | "Qwen"
+  | "GLM"
+  | "Kimi"
   | "Cohere"
   | "Flux"
   | "Sora"
