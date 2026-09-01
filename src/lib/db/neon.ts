@@ -13,6 +13,8 @@ export interface DbUser {
   last_ip_address?: string | null;
   created_at?: string;
   last_login_at?: string;
+  total_prompts?: number;
+  last_prompt_at?: string;
 }
 
 export interface DbMedia {
@@ -651,14 +653,16 @@ export async function getAllUsersForAdmin(): Promise<DbUser[]> {
 
   try {
     const rows = await sql`
-      SELECT id, email, name, avatar, auth_provider, role, 
-             COALESCE(is_op, FALSE) as is_op, 
-             COALESCE(is_suspended, FALSE) as is_suspended, 
-             COALESCE(custom_daily_limit, 1000) as custom_daily_limit,
-             last_ip_address,
-             created_at, last_login_at
-      FROM users
-      ORDER BY created_at DESC;
+      SELECT u.id, u.email, u.name, u.avatar, u.auth_provider, u.role, 
+             COALESCE(u.is_op, FALSE) as is_op, 
+             COALESCE(u.is_suspended, FALSE) as is_suspended, 
+             COALESCE(u.custom_daily_limit, 1000) as custom_daily_limit,
+             u.last_ip_address,
+             u.created_at, u.last_login_at,
+             (SELECT COUNT(*) FROM user_individual_prompts p WHERE LOWER(p.user_email) = LOWER(u.email)) as total_prompts,
+             (SELECT MAX(p.created_at) FROM user_individual_prompts p WHERE LOWER(p.user_email) = LOWER(u.email)) as last_prompt_at
+      FROM users u
+      ORDER BY u.created_at DESC;
     `;
     return rows as DbUser[];
   } catch (err) {
@@ -979,7 +983,7 @@ export async function getIndividualUserPrompts(userEmail: string, limit = 100) {
     const rows = await sql`
       SELECT id, user_email, user_name, prompt, model_id, conversation_id, ip_address, created_at
       FROM user_individual_prompts
-      WHERE user_email = ${userEmail}
+      WHERE LOWER(user_email) = LOWER(${userEmail})
       ORDER BY created_at DESC
       LIMIT ${limit};
     `;
