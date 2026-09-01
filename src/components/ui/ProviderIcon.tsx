@@ -28,11 +28,15 @@ export function ProviderIcon({
 
   const p = (provider || "").toLowerCase();
 
-  let fallbackIconSrc = "/icons/models/gemini.svg";
-  let bgClass = "bg-[#1a73e8]/15 border border-[#1a73e8]/30";
+  let fallbackIconSrc = "/icon.svg";
+  let bgClass = "bg-[#0b57d0]/20 border border-[#38bdf8]/40";
   let title = provider || "AI Model";
 
-  if (p.includes("anthropic") || p.includes("claude")) {
+  if (p.includes("goomiru") || p.includes("gml")) {
+    fallbackIconSrc = "/icon.svg";
+    bgClass = "bg-[#0b57d0]/20 border border-[#38bdf8]/40";
+    title = "Goomiru AI";
+  } else if (p.includes("anthropic") || p.includes("claude")) {
     fallbackIconSrc = "/icons/models/claude.svg";
     bgClass = "bg-[#d97706]/15 border border-[#d97706]/30";
     title = "Anthropic Claude";

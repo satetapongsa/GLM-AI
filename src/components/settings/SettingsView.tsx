@@ -204,7 +204,7 @@ export function SettingsView() {
                       Full-Stack AI Engineer & System Architect
                     </p>
                     <p className="text-[11px] text-[#64748b]">
-                      ผู้คิดค้น พัฒนาระบบ และดูแลโครงสร้างพื้นฐานของ GML AI
+                      ผู้คิดค้น พัฒนาระบบ และดูแลโครงสร้างพื้นฐานของ Goomiru AI
                     </p>
                   </div>
                 </div>
@@ -280,26 +280,26 @@ export function SettingsView() {
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[10px] text-[#64748b] block">GitHub Repository & Profile</span>
+                        <span className="text-[10px] text-[#64748b] block">GitHub Repository</span>
                         <a
-                          href="https://github.com/satetapongsa"
+                          href="https://github.com/satetapongsa/Goomiru"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs font-semibold text-blue-400 hover:underline flex items-center gap-1 truncate"
                         >
-                          <span>https://github.com/satetapongsa</span>
+                          <span>https://github.com/satetapongsa/Goomiru</span>
                           <ExternalLink className="h-3 w-3 shrink-0" />
                         </a>
                       </div>
                     </div>
 
                     <a
-                      href="https://github.com/satetapongsa"
+                      href="https://github.com/satetapongsa/Goomiru"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-white transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
                     >
-                      <span>เปิดโปรไฟล์</span>
+                      <span>ไปที่ Repo</span>
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </div>

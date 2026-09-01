@@ -80,6 +80,7 @@ export type ModelCapability =
   | "Multimodal";
 
 export type AIProviderName =
+  | "Goomiru"
   | "Google"
   | "OpenAI"
   | "Anthropic"

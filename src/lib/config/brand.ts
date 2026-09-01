@@ -1,6 +1,6 @@
 /**
- * BRAND CONFIGURATION - GML (GooMiRu)
- * Single source of truth for GML branding, logo, names, and visual identity.
+ * BRAND CONFIGURATION - Goomiru (GooMiRu)
+ * Single source of truth for Goomiru branding, logo, names, and visual identity.
  */
 
 export interface BrandConfig {
@@ -30,20 +30,20 @@ export interface BrandConfig {
 }
 
 export const BRAND_CONFIG: BrandConfig = {
-  name: "GML",
-  fullName: "GooMiRu",
-  thaiName: "กูไม่รู้เอไอ",
-  welcomeTitle: "ยินดีต้อนรับสู่ กูไม่รู้เอไอ",
-  welcomeSubtitle: "วันนี้อยากให้ AI ช่วยเรื่องอะไร",
-  placeholderInput: "ถามได้เลย",
+  name: "Goomiru",
+  fullName: "Goomiru AI",
+  thaiName: "กูไม่รู้เอไอ (Goomiru)",
+  welcomeTitle: "ยินดีต้อนรับสู่ Goomiru AI",
+  welcomeSubtitle: "วันนี้อยากให้ Goomiru ช่วยเรื่องอะไรครับ",
+  placeholderInput: "ถามอะไร Goomiru ได้เลย...",
   disclaimer: "AI อาจผิดพลาดได้ หลีกเลี่ยงการใส่ข้อมูลส่วนตัวหรือความลับ",
   logo: {
-    badge: "TH",
+    badge: "AI",
   },
   meta: {
-    title: "GML — กูไม่รู้เอไอ (GooMiRu)",
-    description: "แพลตฟอร์ม AI Chat และ Multi-Model Workspace อัจฉริยะ",
-    keywords: ["GML", "GooMiRu", "AI Chat", "Thai AI", "Next.js"],
+    title: "Goomiru — AI Workspace อัจฉริยะ",
+    description: "แพลตฟอร์ม AI Chat และ Multi-Model Workspace อัจฉริยะ ขับเคลื่อนด้วย DeepSeek",
+    keywords: ["Goomiru", "Goomiru AI", "GML", "AI Chat", "Thai AI", "Next.js"],
   },
   defaultUser: {
     id: "user-1",
