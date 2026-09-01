@@ -10,6 +10,7 @@ import { BRAND_CONFIG } from "@/lib/config/brand";
 import { AttachmentPreview } from "./AttachmentPreview";
 import { AttachmentMenu } from "./AttachmentMenu";
 import { ProviderIcon } from "@/components/ui/ProviderIcon";
+import { AVAILABLE_MODELS } from "@/lib/config/models";
 import { cn } from "@/lib/utils/cn";
 import {
   Send,
@@ -30,6 +31,7 @@ export function ChatComposer() {
     sendMessage,
     stopGeneration,
     isStreaming,
+    activeModelId,
   } = useChatStore();
 
   const { getSelectedModel, openModelModal } = useModelStore();
@@ -45,7 +47,10 @@ export function ChatComposer() {
     setMounted(true);
   }, []);
 
-  const currentModel = getSelectedModel();
+  const currentModel =
+    AVAILABLE_MODELS.find((m) => m.id === activeModelId) ||
+    getSelectedModel() ||
+    AVAILABLE_MODELS[0];
   const isUserAuth = mounted ? isAuthenticated : false;
   const displayUsedTokens = mounted ? usedTokensToday : 0;
   const displayDailyLimit = mounted ? dailyLimit : 1000;
@@ -157,7 +162,12 @@ export function ChatComposer() {
               suppressHydrationWarning
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#282a2c] hover:bg-[#333538] border border-[rgba(255,255,255,0.06)] text-slate-200 text-[11.5px] font-medium transition-colors cursor-pointer shrink-0 max-w-[130px] sm:max-w-[220px]"
             >
-              <ProviderIcon provider={currentModel.provider} iconUrl={currentModel.iconUrl} size="sm" />
+              <ProviderIcon
+                key={currentModel.id}
+                provider={currentModel.provider}
+                iconUrl={currentModel.iconUrl}
+                size="sm"
+              />
               <span suppressHydrationWarning className="truncate">
                 {currentModel.name}
               </span>
