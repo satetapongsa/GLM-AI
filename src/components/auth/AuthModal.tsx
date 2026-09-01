@@ -36,10 +36,10 @@ export function AuthModal() {
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/" });
-    } catch (e) {
-      console.error("OAuth error, falling back:", e);
       await loginWithGoogleAccount("satetapongs@gmail.com", "satetapong sanguansuk");
+      closeAuthModal();
+    } catch (e) {
+      console.error("Login error:", e);
       closeAuthModal();
     } finally {
       setIsLoading(false);
