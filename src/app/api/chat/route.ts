@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAIProvider } from "@/lib/providers";
 import { AVAILABLE_MODELS } from "@/lib/config/models";
-import { logUserPrompt } from "@/lib/db/neon";
+import { logUserPrompt, getUserByEmail } from "@/lib/db/neon";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +10,25 @@ export async function POST(req: NextRequest) {
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    }
+
+    // Check if user is suspended or granted OP by Admin in Neon DB
+    let effectiveOpMode = isOpMode === true;
+    if (userEmail && userEmail !== "guest_user") {
+      try {
+        const dbUser = await getUserByEmail(userEmail);
+        if (dbUser?.is_suspended) {
+          return NextResponse.json(
+            { error: "บัญชีของคุณถูกระงับการใช้งานโดยผู้ดูแลระบบ (Account Suspended by Admin)" },
+            { status: 403 }
+          );
+        }
+        if (dbUser?.is_op) {
+          effectiveOpMode = true;
+        }
+      } catch (err) {
+        console.error("Non-fatal: Error checking user status in Neon DB:", err);
+      }
     }
 
     // Extract client IP address for logging
@@ -41,7 +60,7 @@ export async function POST(req: NextRequest) {
           const stream = provider.streamMessage(prompt, history, {
             modelId: modelId || "deepseek-chat",
             systemPrompt,
-            isOpMode: isOpMode === true,
+            isOpMode: effectiveOpMode,
           });
 
           for await (const chunk of stream) {

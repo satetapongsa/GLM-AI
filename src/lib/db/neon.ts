@@ -7,6 +7,9 @@ export interface DbUser {
   avatar?: string | null;
   auth_provider?: string;
   role?: string;
+  is_op?: boolean;
+  is_suspended?: boolean;
+  custom_daily_limit?: number;
   created_at?: string;
   last_login_at?: string;
 }
@@ -90,6 +93,17 @@ export async function ensureTablesExist() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `;
+
+    // Run schema migrations for admin control
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_op BOOLEAN DEFAULT FALSE;
+    `;
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT FALSE;
+    `;
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_daily_limit INTEGER DEFAULT 1000;
     `;
 
     await sql`
@@ -489,4 +503,108 @@ export async function getAdminStats() {
     };
   }
 }
+
+export async function getUserByEmail(email: string): Promise<DbUser | null> {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  try {
+    const rows = await sql`
+      SELECT id, email, name, avatar, auth_provider, role, 
+             COALESCE(is_op, FALSE) as is_op, 
+             COALESCE(is_suspended, FALSE) as is_suspended, 
+             COALESCE(custom_daily_limit, 1000) as custom_daily_limit,
+             created_at, last_login_at
+      FROM users
+      WHERE email = ${email}
+      LIMIT 1;
+    `;
+    if (rows.length === 0) return null;
+    return rows[0] as DbUser;
+  } catch (err) {
+    console.error("Error fetching user by email:", err);
+    return null;
+  }
+}
+
+export async function getAllUsersForAdmin(): Promise<DbUser[]> {
+  const sql = getDb();
+  if (!sql) return [];
+
+  await ensureTablesExist();
+
+  try {
+    const rows = await sql`
+      SELECT id, email, name, avatar, auth_provider, role, 
+             COALESCE(is_op, FALSE) as is_op, 
+             COALESCE(is_suspended, FALSE) as is_suspended, 
+             COALESCE(custom_daily_limit, 1000) as custom_daily_limit,
+             created_at, last_login_at
+      FROM users
+      ORDER BY created_at DESC;
+    `;
+    return rows as DbUser[];
+  } catch (err) {
+    console.error("Error fetching all users for admin:", err);
+    return [];
+  }
+}
+
+export async function updateUserAdminControl(
+  userId: string,
+  updates: {
+    isOp?: boolean;
+    isSuspended?: boolean;
+    customDailyLimit?: number;
+  }
+) {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  try {
+    if (updates.isOp !== undefined) {
+      await sql`
+        UPDATE users 
+        SET is_op = ${updates.isOp},
+            role = ${updates.isOp ? "admin" : "user"}
+        WHERE id = ${userId} OR email = ${userId};
+      `;
+    }
+    if (updates.isSuspended !== undefined) {
+      await sql`
+        UPDATE users 
+        SET is_suspended = ${updates.isSuspended}
+        WHERE id = ${userId} OR email = ${userId};
+      `;
+    }
+    if (updates.customDailyLimit !== undefined) {
+      await sql`
+        UPDATE users 
+        SET custom_daily_limit = ${updates.customDailyLimit}
+        WHERE id = ${userId} OR email = ${userId};
+      `;
+    }
+
+    const updated = await sql`
+      SELECT id, email, name, avatar, auth_provider, role, 
+             COALESCE(is_op, FALSE) as is_op, 
+             COALESCE(is_suspended, FALSE) as is_suspended, 
+             COALESCE(custom_daily_limit, 1000) as custom_daily_limit,
+             created_at, last_login_at
+      FROM users 
+      WHERE id = ${userId} OR email = ${userId}
+      LIMIT 1;
+    `;
+
+    return (updated[0] as DbUser) || null;
+  } catch (err) {
+    console.error("Error updating user admin control:", err);
+    return null;
+  }
+}
+
 

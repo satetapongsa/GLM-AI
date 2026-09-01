@@ -29,6 +29,12 @@ import {
   Search,
   MessageSquare,
   TrendingUp,
+  Crown,
+  Ban,
+  Users,
+  Plus,
+  Minus,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -70,6 +76,12 @@ export function SettingsView() {
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
   const [adminSearch, setAdminSearch] = useState("");
 
+  // Admin Users Management State
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [userActionLoading, setUserActionLoading] = useState<string | null>(null);
+  const [userSearch, setUserSearch] = useState("");
+
   const fetchAdminStats = async () => {
     setIsLoadingAdmin(true);
     try {
@@ -85,9 +97,110 @@ export function SettingsView() {
     }
   };
 
+  const fetchAdminUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      const data = await res.json();
+      if (data.success && data.users) {
+        setAdminUsers(data.users);
+      }
+    } catch (e) {
+      console.error("Error fetching admin users:", e);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  const handleToggleOp = async (targetUser: any) => {
+    setUserActionLoading(targetUser.id);
+    try {
+      const nextVal = !targetUser.is_op;
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: targetUser.id,
+          action: "toggle_op",
+          value: nextVal,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminUsers((prev) =>
+          prev.map((u) =>
+            u.id === targetUser.id ? { ...u, is_op: nextVal, role: nextVal ? "admin" : "user" } : u
+          )
+        );
+      }
+    } catch (e) {
+      console.error("Failed to toggle OP:", e);
+    } finally {
+      setUserActionLoading(null);
+    }
+  };
+
+  const handleToggleSuspend = async (targetUser: any) => {
+    setUserActionLoading(targetUser.id);
+    try {
+      const nextVal = !targetUser.is_suspended;
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: targetUser.id,
+          action: "toggle_suspend",
+          value: nextVal,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminUsers((prev) =>
+          prev.map((u) =>
+            u.id === targetUser.id ? { ...u, is_suspended: nextVal } : u
+          )
+        );
+      }
+    } catch (e) {
+      console.error("Failed to toggle suspend:", e);
+    } finally {
+      setUserActionLoading(null);
+    }
+  };
+
+  const handleSetTokens = async (targetUser: any, delta: number) => {
+    const currentLimit = targetUser.custom_daily_limit || 1000;
+    const newLimit = Math.max(100, currentLimit + delta);
+    setUserActionLoading(targetUser.id);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: targetUser.id,
+          action: "set_tokens",
+          value: newLimit,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminUsers((prev) =>
+          prev.map((u) =>
+            u.id === targetUser.id ? { ...u, custom_daily_limit: newLimit } : u
+          )
+        );
+      }
+    } catch (e) {
+      console.error("Failed to set tokens:", e);
+    } finally {
+      setUserActionLoading(null);
+    }
+  };
+
   React.useEffect(() => {
     if (activeTab === "admin") {
       fetchAdminStats();
+      fetchAdminUsers();
     }
   }, [activeTab]);
 
@@ -502,6 +615,191 @@ export function SettingsView() {
                   ) : (
                     <div className="py-8 text-center text-xs text-slate-500">
                       {isLoadingAdmin ? "กำลังโหลดข้อมูลจาก Neon DB..." : "ยังไม่มีข้อมูลคำถามในระบบ"}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* User Management & Access Control Section */}
+              <div className="p-4 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-amber-400" />
+                      <span>จัดการผู้ใช้ & สิทธิ์การควบคุม (User Control Panel)</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      เปิด/ปิดสิทธิ์ OP แอดมิน, สั่งระงับบัญชีผู้ใช้, และปรับเพิ่ม/ลดโควต้าโทเคน
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-full sm:w-56">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                      <input
+                        type="text"
+                        placeholder="ค้นหาชื่อหรืออีเมลผู้ใช้..."
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1 rounded-xl bg-black/30 border border-white/10 text-xs text-slate-200 outline-none focus:border-amber-500"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={fetchAdminUsers}
+                      disabled={isLoadingUsers}
+                      className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 transition-colors cursor-pointer"
+                      title="รีเฟรชรายชื่อผู้ใช้"
+                    >
+                      <RefreshCw className={cn("h-3.5 w-3.5", isLoadingUsers && "animate-spin text-amber-400")} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Users List */}
+                <div className="space-y-3">
+                  {adminUsers.length > 0 ? (
+                    adminUsers
+                      .filter(
+                        (u) =>
+                          u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+                          (u.name && u.name.toLowerCase().includes(userSearch.toLowerCase()))
+                      )
+                      .map((u) => {
+                        const isActionActive = userActionLoading === u.id;
+                        return (
+                          <div
+                            key={u.id}
+                            className={cn(
+                              "p-3.5 rounded-2xl border transition-all space-y-3",
+                              u.is_suspended
+                                ? "bg-red-950/20 border-red-500/30"
+                                : u.is_op
+                                ? "bg-amber-950/20 border-amber-500/30"
+                                : "bg-[#161718] border-white/5"
+                            )}
+                          >
+                            {/* User Header Info */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-9 w-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 text-xs font-bold text-white">
+                                  {u.avatar ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={u.avatar} alt={u.name || "User"} className="h-full w-full object-cover" />
+                                  ) : (
+                                    (u.name || u.email || "U")[0].toUpperCase()
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-slate-100 truncate">
+                                      {u.name || "ผู้ใช้งาน"}
+                                    </span>
+                                    {u.is_op && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                                        <Crown className="h-3 w-3" />
+                                        <span>OP Admin</span>
+                                      </span>
+                                    )}
+                                    {u.is_suspended && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 text-[10px] font-bold">
+                                        <Ban className="h-3 w-3" />
+                                        <span>ถูกระงับ</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[11px] text-slate-400 block truncate font-mono">
+                                    {u.email}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Daily Token Badge */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <div className="text-right">
+                                  <span className="text-[10px] text-slate-400 block">โควต้าโทเคน</span>
+                                  <span className="text-xs font-bold text-emerald-400">
+                                    {(u.custom_daily_limit || 1000).toLocaleString()} / วัน
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Action Controls Toolbar */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/5 text-xs">
+                              {/* Token Adjustment Buttons */}
+                              <div className="flex items-center gap-1">
+                                <span className="text-[11px] text-slate-400 mr-1">ปรับโทเคน:</span>
+                                <button
+                                  type="button"
+                                  disabled={isActionActive}
+                                  onClick={() => handleSetTokens(u, -500)}
+                                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 font-medium cursor-pointer transition-colors"
+                                  title="ลดโควต้าลง 500 โทเคน"
+                                >
+                                  -500
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isActionActive}
+                                  onClick={() => handleSetTokens(u, 500)}
+                                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 font-medium cursor-pointer transition-colors"
+                                  title="เพิ่มโควต้าขึ้น 500 โทเคน"
+                                >
+                                  +500
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isActionActive}
+                                  onClick={() => handleSetTokens(u, 1000)}
+                                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-emerald-300 font-medium cursor-pointer transition-colors"
+                                  title="เพิ่มโควต้าขึ้น 1,000 โทเคน"
+                                >
+                                  +1,000
+                                </button>
+                              </div>
+
+                              {/* OP & Suspend Action Toggles */}
+                              <div className="flex items-center gap-2">
+                                {/* Toggle OP / DEOP Button */}
+                                <button
+                                  type="button"
+                                  disabled={isActionActive}
+                                  onClick={() => handleToggleOp(u)}
+                                  className={cn(
+                                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95",
+                                    u.is_op
+                                      ? "bg-amber-600 hover:bg-amber-700 text-white"
+                                      : "bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30"
+                                  )}
+                                >
+                                  <Crown className="h-3 w-3" />
+                                  <span>{u.is_op ? "ถอดสิทธิ์ OP (/deop)" : "ให้สิทธิ์ OP (/op)"}</span>
+                                </button>
+
+                                {/* Toggle Suspend Button */}
+                                <button
+                                  type="button"
+                                  disabled={isActionActive}
+                                  onClick={() => handleToggleSuspend(u)}
+                                  className={cn(
+                                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95",
+                                    u.is_suspended
+                                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                      : "bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-500/30"
+                                  )}
+                                >
+                                  <Ban className="h-3 w-3" />
+                                  <span>{u.is_suspended ? "ปลดระงับ (Unban)" : "ระงับบัญชี (Ban)"}</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                  ) : (
+                    <div className="py-8 text-center text-xs text-slate-500">
+                      {isLoadingUsers ? "กำลังโหลดรายชื่อผู้ใช้จาก Neon DB..." : "ยังไม่มีข้อมูลผู้ใช้ในระบบ"}
                     </div>
                   )}
                 </div>
