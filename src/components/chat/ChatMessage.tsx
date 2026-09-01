@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Message } from "@/lib/types";
 import { CodeBlock } from "./CodeBlock";
 import { MessageActions } from "./MessageActions";
+import { ProviderIcon } from "@/components/ui/ProviderIcon";
+import { AVAILABLE_MODELS } from "@/lib/config/models";
 import { formatFileSize, formatRelativeTime } from "@/lib/utils/formatters";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useTokenStore } from "@/lib/store/useTokenStore";
@@ -122,11 +124,21 @@ function parseContentWithCodeBlocks(content: string) {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const { editMessageAndResend } = useChatStore();
+  const { editMessageAndResend, activeModelId } = useChatStore();
   const { usedTokensToday, dailyLimit } = useTokenStore();
   const [showReasoning, setShowReasoning] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(message.content);
+
+  // Match model for dynamic brand icon
+  const matchedModel =
+    AVAILABLE_MODELS.find(
+      (m) =>
+        m.id === message.modelId ||
+        m.name.toLowerCase() === (message.modelName || "").toLowerCase()
+    ) ||
+    AVAILABLE_MODELS.find((m) => m.id === activeModelId) ||
+    AVAILABLE_MODELS[0];
 
   const handleSaveEdit = () => {
     if (editText.trim() && editText !== message.content) {
@@ -306,11 +318,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Assistant Message
   return (
     <div className="flex items-start gap-3 my-4 px-1 select-text group animate-fade-up">
-      {/* GML Avatar Icon */}
+      {/* Dynamic Model Brand Logo Icon */}
       <div className="shrink-0 mt-0.5">
-        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#0842a0] via-[#0b57d0] to-[#38bdf8] flex items-center justify-center text-white shadow-xs">
-          <Sparkles className="h-4 w-4" />
-        </div>
+        <ProviderIcon
+          provider={matchedModel.provider}
+          iconUrl={matchedModel.iconUrl}
+          size="md"
+        />
       </div>
 
       <div className="flex-1 min-w-0 max-w-[90%] sm:max-w-[85%] space-y-2">
