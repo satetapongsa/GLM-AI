@@ -102,13 +102,6 @@ export function Sidebar() {
       onClick: () => setActiveTab("learn"),
       active: activeTab === "learn",
     },
-    {
-      id: "admin",
-      label: "แอดมิน (Admin Panel)",
-      icon: <ShieldAlert className="h-4 w-4 text-emerald-400" />,
-      onClick: () => openSettingsTab("admin"),
-      active: activeTab === "settings" && settingsInitialTab === "admin",
-    },
   ];
 
   const isUserAuthenticated = mounted ? isAuthenticated : false;

@@ -8,6 +8,8 @@ export interface AuthUser {
   email: string;
   avatar?: string;
   role?: string;
+  is_op?: boolean;
+  is_suspended?: boolean;
 }
 
 interface AuthState {

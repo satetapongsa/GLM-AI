@@ -47,12 +47,6 @@ export function UserProfileMenu({ collapsed = false }: { collapsed?: boolean }) 
       onClick: () => setActiveTab("settings"),
     },
     {
-      id: "admin",
-      label: "แดชบอร์ดแอดมิน (Admin)",
-      icon: <ShieldAlert className="h-4 w-4 text-emerald-400" />,
-      onClick: () => openSettingsTab("admin"),
-    },
-    {
       id: "settings",
       label: "การตั้งค่าระบบ",
       icon: <Settings className="h-4 w-4" />,
