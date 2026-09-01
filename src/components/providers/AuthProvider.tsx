@@ -6,7 +6,6 @@ import { useAuthStore } from "@/lib/store/useAuthStore";
 
 function AuthSessionSync({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  const { user, login } = useAuthStore();
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -20,6 +19,7 @@ function AuthSessionSync({ children }: { children: React.ReactNode }) {
           role: "ผู้ใช้บัญชี Google",
         },
         isAuthenticated: true,
+        isAuthModalOpen: false, // Automatically close auth popup modal on successful authentication!
       });
     }
   }, [session, status]);

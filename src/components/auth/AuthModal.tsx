@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { useAuthStore } from "@/lib/store/useAuthStore";
@@ -11,10 +11,18 @@ export function AuthModal() {
   const {
     isAuthModalOpen,
     closeAuthModal,
+    isAuthenticated,
     loginWithGoogleAccount,
     login,
     register,
   } = useAuthStore();
+
+  // Auto-close modal whenever user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && isAuthModalOpen) {
+      closeAuthModal();
+    }
+  }, [isAuthenticated, isAuthModalOpen, closeAuthModal]);
 
   const [isEmailMode, setIsEmailMode] = useState(false);
   const [emailMode, setEmailMode] = useState<"login" | "register">("login");
