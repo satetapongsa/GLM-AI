@@ -424,3 +424,69 @@ export async function logUserPrompt(data: {
     return null;
   }
 }
+
+export async function getAdminStats() {
+  const sql = getDb();
+  if (!sql) {
+    return {
+      totalPrompts: 0,
+      todayPrompts: 0,
+      totalUsers: 0,
+      modelUsage: [],
+      recentPrompts: [],
+    };
+  }
+
+  await ensureTablesExist();
+
+  try {
+    const totalPromptsRes = await sql`SELECT COUNT(*) as count FROM user_prompts;`;
+    const todayPromptsRes = await sql`
+      SELECT COUNT(*) as count 
+      FROM user_prompts 
+      WHERE created_at >= CURRENT_DATE;
+    `;
+    const totalUsersRes = await sql`SELECT COUNT(*) as count FROM users;`;
+    const modelUsageRes = await sql`
+      SELECT model_id, COUNT(*) as count 
+      FROM user_prompts 
+      GROUP BY model_id 
+      ORDER BY count DESC 
+      LIMIT 10;
+    `;
+    const recentPromptsRes = await sql`
+      SELECT id, user_email, prompt, model_id, ip_address, created_at 
+      FROM user_prompts 
+      ORDER BY created_at DESC 
+      LIMIT 50;
+    `;
+
+    return {
+      totalPrompts: Number(totalPromptsRes[0]?.count || 0),
+      todayPrompts: Number(todayPromptsRes[0]?.count || 0),
+      totalUsers: Number(totalUsersRes[0]?.count || 0),
+      modelUsage: modelUsageRes.map((r) => ({
+        modelId: r.model_id || "unknown",
+        count: Number(r.count || 0),
+      })),
+      recentPrompts: recentPromptsRes.map((r) => ({
+        id: r.id,
+        userEmail: r.user_email || "guest",
+        prompt: r.prompt,
+        modelId: r.model_id || "gemini-3.1-flash-lite",
+        ipAddress: r.ip_address || "unknown",
+        createdAt: r.created_at,
+      })),
+    };
+  } catch (err) {
+    console.error("Error fetching admin stats:", err);
+    return {
+      totalPrompts: 0,
+      todayPrompts: 0,
+      totalUsers: 0,
+      modelUsage: [],
+      recentPrompts: [],
+    };
+  }
+}
+

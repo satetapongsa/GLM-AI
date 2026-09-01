@@ -24,16 +24,22 @@ import {
   BadgeCheck,
   Sparkles,
   AlertTriangle,
+  BarChart3,
+  RefreshCw,
+  Search,
+  MessageSquare,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 type SettingsTab =
+  | "creator"
+  | "admin"
   | "general"
   | "composer"
   | "shortcuts"
   | "privacy"
-  | "account"
-  | "creator";
+  | "account";
 
 export function SettingsView() {
   const { settings, updateSettings } = useSettingsStore();
@@ -45,6 +51,45 @@ export function SettingsView() {
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isClearedSuccess, setIsClearedSuccess] = useState(false);
+
+  // Admin Dashboard State
+  const [adminStats, setAdminStats] = useState<{
+    totalPrompts: number;
+    todayPrompts: number;
+    totalUsers: number;
+    modelUsage: { modelId: string; count: number }[];
+    recentPrompts: {
+      id: number;
+      userEmail: string;
+      prompt: string;
+      modelId: string;
+      ipAddress: string;
+      createdAt: string;
+    }[];
+  } | null>(null);
+  const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
+  const [adminSearch, setAdminSearch] = useState("");
+
+  const fetchAdminStats = async () => {
+    setIsLoadingAdmin(true);
+    try {
+      const res = await fetch("/api/admin/stats");
+      const data = await res.json();
+      if (data.success && data.stats) {
+        setAdminStats(data.stats);
+      }
+    } catch (e) {
+      console.error("Error fetching admin stats:", e);
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeTab === "admin") {
+      fetchAdminStats();
+    }
+  }, [activeTab]);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -85,6 +130,11 @@ export function SettingsView() {
       id: "creator",
       label: "ข้อมูลผู้สร้าง",
       icon: <BadgeCheck className="h-4 w-4 text-blue-400" />,
+    },
+    {
+      id: "admin",
+      label: "แดชบอร์ดแอดมิน (Admin)",
+      icon: <BarChart3 className="h-4 w-4 text-emerald-400" />,
     },
     {
       id: "general",
@@ -303,6 +353,157 @@ export function SettingsView() {
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Admin Analytics Dashboard Tab */}
+          {activeTab === "admin" && (
+            <div className="space-y-5 select-none animate-fade-up">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[rgba(255,255,255,0.08)] pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-[#f1f5f9] flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-emerald-400" />
+                    <span>แดชบอร์ดแอดมิน (Neon DB Live Analytics)</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    สถิติการใช้งานจริงและคำถามที่ผู้ใช้ถามเข้ามาในระบบ Goomiru AI
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fetchAdminStats}
+                  disabled={isLoadingAdmin}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors cursor-pointer border border-white/10 active:scale-95 shrink-0"
+                >
+                  <RefreshCw className={cn("h-3.5 w-3.5", isLoadingAdmin && "animate-spin text-emerald-400")} />
+                  <span>รีเฟรชสถิติ</span>
+                </button>
+              </div>
+
+              {/* Metric Cards Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-1">
+                  <span className="text-[11px] text-slate-400 font-medium">คำถามทั้งหมด</span>
+                  <div className="text-xl sm:text-2xl font-black text-white">
+                    {adminStats ? adminStats.totalPrompts.toLocaleString() : "..."}
+                  </div>
+                  <span className="text-[10px] text-emerald-400 flex items-center gap-0.5">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>บันทึกใน Neon DB</span>
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-1">
+                  <span className="text-[11px] text-slate-400 font-medium">คำถามวันนี้</span>
+                  <div className="text-xl sm:text-2xl font-black text-emerald-400">
+                    {adminStats ? adminStats.todayPrompts.toLocaleString() : "..."}
+                  </div>
+                  <span className="text-[10px] text-slate-500">นับตามเวลาวันนี้</span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-1">
+                  <span className="text-[11px] text-slate-400 font-medium">ผู้ใช้ที่ลงทะเบียน</span>
+                  <div className="text-xl sm:text-2xl font-black text-sky-400">
+                    {adminStats ? adminStats.totalUsers.toLocaleString() : "..."}
+                  </div>
+                  <span className="text-[10px] text-slate-500">บัญชีในระบบ</span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-1">
+                  <span className="text-[11px] text-slate-400 font-medium">สมองกลขับเคลื่อน</span>
+                  <div className="text-xs sm:text-sm font-bold text-amber-400 truncate">
+                    DeepSeek Master
+                  </div>
+                  <span className="text-[10px] text-emerald-400">ประหยัดโทเคนสูงสุด</span>
+                </div>
+              </div>
+
+              {/* Model Usage Breakdown */}
+              {adminStats?.modelUsage && adminStats.modelUsage.length > 0 && (
+                <div className="p-4 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-3">
+                  <h4 className="text-xs font-bold text-slate-200">โมเดลยอดนิยมที่มีคนเลือกใช้</h4>
+                  <div className="space-y-2">
+                    {adminStats.modelUsage.map((m, idx) => {
+                      const total = adminStats.totalPrompts || 1;
+                      const pct = Math.round((m.count / total) * 100);
+                      return (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs text-slate-300">
+                            <span className="font-semibold">{m.modelId}</span>
+                            <span className="text-slate-400">{m.count} ครั้ง ({pct}%)</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-black/40 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-400"
+                              style={{ width: `${Math.max(5, pct)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent Prompts Stream (ตารางคำถามล่าสุดที่คนส่งเข้ามา) */}
+              <div className="p-4 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <MessageSquare className="h-4 w-4 text-sky-400" />
+                    <span>คำถามล่าสุดของผู้ใช้ (Live Prompts Stream)</span>
+                  </h4>
+                  <div className="relative w-full sm:w-60">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="ค้นหาคำถามหรืออีเมล..."
+                      value={adminSearch}
+                      onChange={(e) => setAdminSearch(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1 rounded-xl bg-black/30 border border-white/10 text-xs text-slate-200 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="max-h-80 overflow-y-auto space-y-2 pr-1 select-text">
+                  {adminStats?.recentPrompts && adminStats.recentPrompts.length > 0 ? (
+                    adminStats.recentPrompts
+                      .filter(
+                        (p) =>
+                          p.prompt.toLowerCase().includes(adminSearch.toLowerCase()) ||
+                          p.userEmail.toLowerCase().includes(adminSearch.toLowerCase()) ||
+                          p.modelId.toLowerCase().includes(adminSearch.toLowerCase())
+                      )
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-3 rounded-xl bg-[#161718] border border-white/5 space-y-1.5 hover:border-white/15 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                            <span className="font-semibold text-slate-300 truncate max-w-[180px]">
+                              {item.userEmail}
+                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-mono">
+                                {item.modelId}
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                {item.createdAt ? new Date(item.createdAt).toLocaleTimeString("th-TH") : ""}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-200 font-normal leading-relaxed break-words bg-[#1f2022] p-2 rounded-lg border border-white/5">
+                            {item.prompt}
+                          </p>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="py-8 text-center text-xs text-slate-500">
+                      {isLoadingAdmin ? "กำลังโหลดข้อมูลจาก Neon DB..." : "ยังไม่มีข้อมูลคำถามในระบบ"}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
