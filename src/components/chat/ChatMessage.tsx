@@ -34,13 +34,17 @@ export interface ChatMessageProps {
 function renderInlineText(text: string): React.ReactNode {
   if (!text) return null;
 
-  // Split by bold (**...**), inline code (`...`), and italics (*...*)
-  const tokens = text.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/g);
+  // Split by bold (**...** or __...__), inline code (`...`), and italics (*...*)
+  const tokens = text.split(/(\*\*.*?\*\*|__.*?__|`.*?`|\*.*?\*)/g);
 
   return tokens.map((token, idx) => {
-    if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
+    if (
+      ((token.startsWith("**") && token.endsWith("**")) ||
+        (token.startsWith("__") && token.endsWith("__"))) &&
+      token.length >= 4
+    ) {
       return (
-        <strong key={idx} className="font-semibold text-[#f1f5f9]">
+        <strong key={idx} className="font-bold text-white">
           {token.slice(2, -2)}
         </strong>
       );
@@ -49,7 +53,7 @@ function renderInlineText(text: string): React.ReactNode {
       return (
         <code
           key={idx}
-          className="px-1.5 py-0.5 mx-0.5 rounded-md bg-[#131314] border border-[rgba(255,255,255,0.08)] text-sky-400 font-mono text-xs"
+          className="px-1.5 py-0.5 mx-0.5 rounded-md bg-[#1e1f20] border border-white/10 text-sky-300 font-mono text-[12px]"
         >
           {token.slice(1, -1)}
         </code>
