@@ -44,8 +44,6 @@ export function Sidebar() {
     setSearchModalOpen,
     activeTab,
     setActiveTab,
-    openSettingsTab,
-    settingsInitialTab,
   } = useUIStore();
   const { user, isAuthenticated, openAuthModal, openLogoutConfirm } = useAuthStore();
   const [mounted, setMounted] = useState(false);

@@ -96,7 +96,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <AppShell>{children}</AppShell>
+            {children}
           </ThemeProvider>
         </AuthProvider>
       </body>

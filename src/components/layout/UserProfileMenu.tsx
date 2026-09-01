@@ -21,7 +21,7 @@ import {
 
 export function UserProfileMenu({ collapsed = false }: { collapsed?: boolean }) {
   const { theme, setTheme } = useTheme();
-  const { setActiveTab, openSettingsTab } = useUIStore();
+  const { setActiveTab } = useUIStore();
   const { user, isAuthenticated, openLogoutConfirm, openAuthModal } = useAuthStore();
 
   const cycleTheme = () => {

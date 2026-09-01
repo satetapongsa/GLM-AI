@@ -44,7 +44,6 @@ import { cn } from "@/lib/utils/cn";
 
 type SettingsTab =
   | "creator"
-  | "admin"
   | "general"
   | "composer"
   | "shortcuts"
@@ -112,15 +111,6 @@ export function SettingsView() {
       label: "ข้อมูลผู้สร้าง",
       icon: <BadgeCheck className="h-4 w-4 text-blue-400" />,
     },
-    ...(user?.is_op || activeTab === "admin"
-      ? [
-          {
-            id: "admin" as const,
-            label: "แดชบอร์ดแอดมิน (Admin)",
-            icon: <BarChart3 className="h-4 w-4 text-emerald-400" />,
-          },
-        ]
-      : []),
     {
       id: "general",
       label: "ทั่วไป",
@@ -340,13 +330,6 @@ export function SettingsView() {
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Admin Analytics Dashboard Tab (Hidden from normal users) */}
-          {activeTab === "admin" && (user?.is_op || activeTab === "admin") && (
-            <div className="select-none animate-fade-up">
-              <AdminDashboardView />
             </div>
           )}
 
