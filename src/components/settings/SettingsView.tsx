@@ -528,7 +528,10 @@ export function SettingsView() {
       >
         <div className="space-y-5">
           <div className="p-4 rounded-2xl bg-[#131314] border border-red-500/20 text-xs sm:text-sm text-slate-300 leading-relaxed">
-            <p className="font-semibold text-red-400 mb-1.5">⚠️ ข้อมูลจะถูกลบอย่างถาวร:</p>
+            <p className="font-semibold text-red-400 mb-1.5 flex items-center gap-1.5">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
+              <span>ข้อมูลจะถูกลบอย่างถาวร:</span>
+            </p>
             คุณกำลังจะลบประวัติการสนทนาทั้งหมด <strong className="text-white font-bold">({conversations.length} แชท)</strong> ที่บันทึกไว้ในอุปกรณ์นี้ ข้อมูลที่ถูกลบจะไม่สามารถกู้คืนกลับมาได้อีก
           </div>
 

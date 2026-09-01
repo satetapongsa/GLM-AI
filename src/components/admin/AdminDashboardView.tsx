@@ -18,6 +18,11 @@ import {
   Copy,
   Check,
   UserCheck,
+  User,
+  Folder,
+  FileText,
+  Zap,
+  Shield,
   Clock,
   Calendar,
   Layers,
@@ -363,7 +368,7 @@ export function AdminDashboardView() {
           )}
         >
           <Users className="h-4 w-4" />
-          <span>👥 ตารางข้อมูลผู้ใช้งาน & IP แต่ละคน ({adminUsers.length})</span>
+          <span>ตารางข้อมูลผู้ใช้งาน & IP ({adminUsers.length})</span>
         </button>
 
         <button
@@ -377,7 +382,7 @@ export function AdminDashboardView() {
           )}
         >
           <MessageSquare className="h-4 w-4" />
-          <span>💬 สตรีมคำถามสด (Live Stream)</span>
+          <span>สตรีมคำถามสด (Live Stream)</span>
         </button>
 
         <button
@@ -391,7 +396,7 @@ export function AdminDashboardView() {
           )}
         >
           <Database className="h-4 w-4" />
-          <span>🗄️ Neon Live Database Explorer</span>
+          <span>Neon Live Database Explorer</span>
         </button>
       </div>
 
@@ -439,7 +444,12 @@ export function AdminDashboardView() {
                     <tr>
                       <th className="px-4 py-3 font-semibold">ผู้ใช้งาน</th>
                       <th className="px-4 py-3 font-semibold">อีเมล (Email)</th>
-                      <th className="px-4 py-3 font-semibold">🌐 IP Address ล่าสุด</th>
+                      <th className="px-4 py-3 font-semibold">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Globe className="h-3.5 w-3.5 text-sky-400" />
+                          <span>IP Address ล่าสุด</span>
+                        </span>
+                      </th>
                       <th className="px-4 py-3 font-semibold text-center">คำถามทั้งหมด</th>
                       <th className="px-4 py-3 font-semibold text-center">สถานะ</th>
                       <th className="px-4 py-3 font-semibold text-center">โควต้าโทเคน</th>
@@ -750,25 +760,26 @@ export function AdminDashboardView() {
           {/* Table Selection Pills */}
           <div className="flex flex-wrap items-center gap-2">
             {[
-              { id: "users", label: "👤 ผู้ใช้งาน (users)", count: dbData?.tableCounts?.users },
-              { id: "user_individual_prompts", label: "💬 ประวัติคำถามรายบุคคล (user_individual_prompts)", count: dbData?.tableCounts?.user_individual_prompts },
-              { id: "cloud_conversations", label: "🗂️ ประวัติห้องแชท (cloud_conversations)", count: dbData?.tableCounts?.cloud_conversations },
-              { id: "cloud_messages", label: "📝 ข้อความแชท (cloud_messages)", count: dbData?.tableCounts?.cloud_messages },
-              { id: "visitor_logs", label: "🌐 บันทึกผู้เข้าชม (visitor_logs)", count: dbData?.tableCounts?.visitor_logs },
+              { id: "users", label: "ผู้ใช้งาน (users)", icon: <User className="h-3.5 w-3.5 text-sky-400" />, count: dbData?.tableCounts?.users },
+              { id: "user_individual_prompts", label: "ประวัติคำถามรายบุคคล (user_individual_prompts)", icon: <MessageSquare className="h-3.5 w-3.5 text-emerald-400" />, count: dbData?.tableCounts?.user_individual_prompts },
+              { id: "cloud_conversations", label: "ประวัติห้องแชท (cloud_conversations)", icon: <Folder className="h-3.5 w-3.5 text-amber-400" />, count: dbData?.tableCounts?.cloud_conversations },
+              { id: "cloud_messages", label: "ข้อความแชท (cloud_messages)", icon: <FileText className="h-3.5 w-3.5 text-indigo-400" />, count: dbData?.tableCounts?.cloud_messages },
+              { id: "visitor_logs", label: "บันทึกผู้เข้าชม (visitor_logs)", icon: <Globe className="h-3.5 w-3.5 text-purple-400" />, count: dbData?.tableCounts?.visitor_logs },
             ].map((tbl) => (
               <button
                 key={tbl.id}
                 type="button"
                 onClick={() => fetchDbData(tbl.id)}
                 className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border",
+                  "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border",
                   selectedDbTable === tbl.id
                     ? "bg-purple-600/25 text-purple-300 border-purple-500/50 font-bold shadow-xs"
                     : "bg-[#131314] hover:bg-[#282a2c] text-slate-400 border-white/5"
                 )}
               >
+                {tbl.icon}
                 <span>{tbl.label}</span>
-                <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-black/40 text-[10px] font-mono text-slate-300">
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-black/40 text-[10px] font-mono text-slate-300">
                   {tbl.count ?? 0}
                 </span>
               </button>
@@ -884,13 +895,15 @@ export function AdminDashboardView() {
                         {viewingUserProfile.name || "ผู้ใช้งาน"}
                       </h4>
                       {viewingUserProfile.is_op && (
-                        <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                          👑 OP Admin
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                          <Crown className="h-3 w-3" />
+                          <span>OP Admin</span>
                         </span>
                       )}
                       {viewingUserProfile.is_suspended && (
-                        <span className="px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 text-[10px] font-bold">
-                          🚫 ระงับบัญชี
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 text-[10px] font-bold">
+                          <Ban className="h-3 w-3" />
+                          <span>ระงับบัญชี</span>
                         </span>
                       )}
                     </div>
@@ -903,7 +916,10 @@ export function AdminDashboardView() {
                 {/* IP Badge & Token Quota */}
                 <div className="flex flex-wrap items-center gap-2.5">
                   <div className="p-2.5 rounded-xl bg-[#131314] border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block">🌐 IP Address</span>
+                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                      <Globe className="h-2.5 w-2.5 text-sky-400" />
+                      <span>IP Address</span>
+                    </span>
                     <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-sky-400">
                       <span>{viewingUserProfile.last_ip_address || "ไม่ระบุ"}</span>
                       {viewingUserProfile.last_ip_address && (
@@ -924,14 +940,20 @@ export function AdminDashboardView() {
                   </div>
 
                   <div className="p-2.5 rounded-xl bg-[#131314] border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block">⚡ โควต้าโทเคน</span>
+                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                      <Zap className="h-2.5 w-2.5 text-emerald-400" />
+                      <span>โควต้าโทเคน</span>
+                    </span>
                     <span className="font-mono text-xs font-bold text-emerald-400">
                       {(viewingUserProfile.custom_daily_limit || 1000).toLocaleString()} / วัน
                     </span>
                   </div>
 
                   <div className="p-2.5 rounded-xl bg-[#131314] border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block">💬 คำถามที่ถาม</span>
+                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                      <MessageSquare className="h-2.5 w-2.5 text-amber-400" />
+                      <span>คำถามที่ถาม</span>
+                    </span>
                     <span className="font-mono text-xs font-bold text-amber-400">
                       {userQuestionsList.length} ข้อความ
                     </span>
@@ -971,26 +993,28 @@ export function AdminDashboardView() {
                     type="button"
                     onClick={() => handleToggleOp(viewingUserProfile)}
                     className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
                       viewingUserProfile.is_op
                         ? "bg-amber-500 hover:bg-amber-600 text-black font-bold"
                         : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10"
                     )}
                   >
-                    {viewingUserProfile.is_op ? "👑 ถอดสิทธิ์ OP" : "👑 ให้สิทธิ์ OP"}
+                    <Crown className="h-3.5 w-3.5" />
+                    <span>{viewingUserProfile.is_op ? "ถอดสิทธิ์ OP" : "ให้สิทธิ์ OP"}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleToggleSuspend(viewingUserProfile)}
                     className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
                       viewingUserProfile.is_suspended
                         ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                         : "bg-red-950/50 hover:bg-red-900/70 text-red-300 border border-red-500/30"
                     )}
                   >
-                    {viewingUserProfile.is_suspended ? "ปลดระงับบัญชี" : "ระงับบัญชี (Ban)"}
+                    <Ban className="h-3.5 w-3.5" />
+                    <span>{viewingUserProfile.is_suspended ? "ปลดระงับบัญชี" : "ระงับบัญชี (Ban)"}</span>
                   </button>
                 </div>
               </div>
@@ -1039,7 +1063,12 @@ export function AdminDashboardView() {
                           <th className="px-3.5 py-2.5 font-semibold w-40">วัน-เวลาที่ถาม</th>
                           <th className="px-3.5 py-2.5 font-semibold">ข้อความคำถาม (Prompt)</th>
                           <th className="px-3.5 py-2.5 font-semibold w-28 text-center">โมเดล AI</th>
-                          <th className="px-3.5 py-2.5 font-semibold w-36">🌐 ไอพีตอนถาม</th>
+                          <th className="px-3.5 py-2.5 font-semibold w-36">
+                            <span className="inline-flex items-center gap-1 text-sky-400">
+                              <Globe className="h-3 w-3" />
+                              <span>ไอพีตอนถาม</span>
+                            </span>
+                          </th>
                           <th className="px-3.5 py-2.5 font-semibold w-16 text-center">คัดลอก</th>
                         </tr>
                       </thead>

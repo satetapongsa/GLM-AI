@@ -7,7 +7,8 @@ import { useChatStore } from "@/lib/store/useChatStore";
 import { useUIStore } from "@/lib/store/useUIStore";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Pin, MessageSquare, Trash2, Sliders } from "lucide-react";
+import { Pin, MessageSquare, Trash2, Sliders, Wrench } from "lucide-react";
+import { AssistantAvatarIcon } from "./AssistantAvatarIcon";
 import { cn } from "@/lib/utils/cn";
 
 export interface AssistantCardProps {
@@ -30,8 +31,8 @@ export function AssistantCard({ assistant }: AssistantCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
-            <div className="text-3xl p-2 rounded-2xl bg-[hsl(var(--muted))] select-none">
-              {assistant.avatar}
+            <div className="p-3 rounded-2xl bg-[hsl(var(--muted))] border border-white/5 flex items-center justify-center">
+              <AssistantAvatarIcon iconId={assistant.avatar} className="h-6 w-6 text-sky-400" />
             </div>
             <div>
               <h4 className="text-sm sm:text-base font-bold text-[hsl(var(--card-foreground))]">
@@ -82,9 +83,10 @@ export function AssistantCard({ assistant }: AssistantCardProps) {
             {assistant.tools.map((tool) => (
               <span
                 key={tool}
-                className="text-[10px] px-2 py-0.5 rounded-md bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]"
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]"
               >
-                🛠️ {tool}
+                <Wrench className="h-2.5 w-2.5" />
+                <span>{tool}</span>
               </span>
             ))}
           </div>

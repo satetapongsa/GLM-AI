@@ -48,7 +48,7 @@ function SecretAdminContent() {
   const handleBackdropClick = (e: React.MouseEvent) => {
     // If user attempts to click empty space to bypass or dismiss
     if (e.target === e.currentTarget) {
-      triggerErrorEffect("⚠️ พื้นที่นี้ถูกล็อคความปลอดภัย! คุณต้องใส่รหัสผ่านเพื่อเข้าดูข้อมูล");
+      triggerErrorEffect("พื้นที่นี้ถูกล็อคความปลอดภัย ต้องใส่รหัสผ่านเพื่อเข้าดูข้อมูล");
     }
   };
 
@@ -56,7 +56,7 @@ function SecretAdminContent() {
     e.preventDefault();
 
     if (!passwordInput.trim()) {
-      triggerErrorEffect("⚠️ กรุณาป้อนรหัสผ่านก่อนเข้าสู่ระบบ");
+      triggerErrorEffect("กรุณาป้อนรหัสผ่านก่อนเข้าสู่ระบบ");
       return;
     }
 
@@ -79,11 +79,11 @@ function SecretAdminContent() {
         sessionStorage.setItem("gml_admin_token", data.token);
         setErrorMessage(null);
       } else {
-        triggerErrorEffect(data.error || "❌ รหัสผ่านไม่ถูกต้อง! ไม่อนุญาตให้เข้าถึงแดชบอร์ด");
+        triggerErrorEffect(data.error || "รหัสผ่านไม่ถูกต้อง ไม่อนุญาตให้เข้าถึงแดชบอร์ด");
         setPasswordInput("");
       }
     } catch {
-      triggerErrorEffect("❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อยืนยันรหัสผ่าน");
+      triggerErrorEffect("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อยืนยันรหัสผ่าน");
     } finally {
       setIsVerifying(false);
     }

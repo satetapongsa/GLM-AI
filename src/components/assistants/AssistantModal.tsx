@@ -6,18 +6,18 @@ import { Button } from "@/components/ui/Button";
 import { useAssistantStore } from "@/lib/store/useAssistantStore";
 import { AVAILABLE_MODELS } from "@/lib/config/models";
 
+import { ASSISTANT_ICONS } from "./AssistantAvatarIcon";
+
 export interface AssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const EMOJI_OPTIONS = ["🤖", "💻", "✍️", "📊", "🎨", "🔬", "⚖️", "🏥", "🚀", "💡", "🧠", "🎯"];
-
 export function AssistantModal({ isOpen, onClose }: AssistantModalProps) {
   const { addAssistant } = useAssistantStore();
 
   const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState("🤖");
+  const [avatar, setAvatar] = useState("bot");
   const [tagline, setTagline] = useState("");
   const [description, setDescription] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
@@ -67,21 +67,27 @@ export function AssistantModal({ isOpen, onClose }: AssistantModalProps) {
         <div className="flex gap-3">
           <div className="shrink-0">
             <label className="block font-semibold text-[hsl(var(--foreground))] mb-1.5">
-              ไอคอน
+              เลือกไอคอน
             </label>
-            <div className="flex flex-wrap gap-1 max-w-[120px] p-1.5 rounded-xl bg-[hsl(var(--muted))] border border-[hsl(var(--border))]">
-              {EMOJI_OPTIONS.slice(0, 6).map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setAvatar(emoji)}
-                  className={`h-7 w-7 rounded-lg flex items-center justify-center text-sm cursor-pointer ${
-                    avatar === emoji ? "bg-[hsl(var(--primary))] text-white" : "hover:bg-black/10"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+            <div className="grid grid-cols-4 gap-1 p-1.5 rounded-xl bg-[hsl(var(--muted))] border border-[hsl(var(--border))]">
+              {ASSISTANT_ICONS.slice(0, 8).map((item) => {
+                const IconComponent = item.Icon;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setAvatar(item.id)}
+                    title={item.name}
+                    className={`h-7 w-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors ${
+                      avatar === item.id
+                        ? "bg-[hsl(var(--primary))] text-white shadow-xs"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                  </button>
+                );
+              })}
             </div>
           </div>
 

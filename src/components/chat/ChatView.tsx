@@ -36,7 +36,7 @@ export function ChatView() {
     markdownContent += `> บันทึกการสนทนาจาก Goomiru AI • ${dateStr}\n\n---\n\n`;
 
     currentMessages.forEach((msg) => {
-      const roleName = msg.role === "user" ? "👤 คุณ" : `🤖 ${msg.modelName || "Goomiru AI"}`;
+      const roleName = msg.role === "user" ? "คุณ (User)" : (msg.modelName || "Goomairu AI");
       markdownContent += `### ${roleName}\n${msg.content}\n\n---\n\n`;
     });
 

@@ -4,7 +4,7 @@ import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/lib/store/useAuthStore";
-import { LogOut } from "lucide-react";
+import { LogOut, AlertTriangle } from "lucide-react";
 
 export function LogoutConfirmModal() {
   const { user, isLogoutConfirmOpen, closeLogoutConfirm, logout } = useAuthStore();
@@ -23,7 +23,10 @@ export function LogoutConfirmModal() {
     >
       <div className="space-y-4">
         <div className="p-4 rounded-2xl bg-[#131314] border border-amber-500/20 text-xs sm:text-sm text-slate-300 leading-relaxed">
-          <p className="font-semibold text-amber-400 mb-1">⚠️ แจ้งเตือนการออกจากระบบ:</p>
+          <p className="font-semibold text-amber-400 mb-1 flex items-center gap-1.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+            <span>แจ้งเตือนการออกจากระบบ:</span>
+          </p>
           คุณต้องการออกจากระบบบัญชี{" "}
           <strong className="text-white font-bold">{user?.name || user?.email || "ของคุณ"}</strong>{" "}
           หรือไม่? ข้อมูลประวัติการสนทนาในเครื่องนี้จะยังคงอยู่ และสามารถเข้าสู่ระบบกลับมาใหม่ได้ตลอดเวลา
