@@ -20,7 +20,7 @@ interface AuthState {
   login: (email: string, password?: string) => Promise<boolean>;
   register: (name: string, email: string, password?: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
-  loginWithGoogleAccount: (email?: string, name?: string, avatar?: string) => Promise<boolean>;
+  loginWithGoogleAccount: (email: string, name?: string, avatar?: string) => Promise<boolean>;
   logout: () => void;
   openAuthModal: (mode?: "login" | "register") => void;
   closeAuthModal: () => void;
@@ -53,11 +53,12 @@ export const useAuthStore = create<AuthState>()(
       authModalMode: "login",
 
       login: async (email: string) => {
-        const username = email.split("@")[0] || "user";
+        const cleanEmail = email.trim();
+        const username = cleanEmail.split("@")[0] || "user";
         const newUser: AuthUser = {
-          id: `usr-${Date.now()}`,
+          id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           name: username,
-          email: email,
+          email: cleanEmail,
           role: "ผู้ใช้ทั่วไป",
         };
 
@@ -72,11 +73,13 @@ export const useAuthStore = create<AuthState>()(
       },
 
       register: async (name: string, email: string) => {
+        const cleanEmail = email.trim();
+        const cleanName = name.trim() || cleanEmail.split("@")[0] || "user";
         const newUser: AuthUser = {
-          id: `usr-${Date.now()}`,
-          name: name.trim() || email.split("@")[0] || "user",
-          email: email,
-          role: "สมาชิกใหม่",
+          id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          name: cleanName,
+          email: cleanEmail,
+          role: "สมาชิก Goomiru",
         };
 
         set({
@@ -91,9 +94,9 @@ export const useAuthStore = create<AuthState>()(
 
       loginWithGoogle: async () => {
         const newUser: AuthUser = {
-          id: `usr-google-${Date.now()}`,
-          name: "satetapong sanguansuk",
-          email: "satetapongs@gmail.com",
+          id: `usr-google-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          name: "Goomiru User",
+          email: "user@gmail.com",
           role: "ผู้ใช้ Google",
         };
 
@@ -108,14 +111,16 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginWithGoogleAccount: async (
-        email = "satetapongs@gmail.com",
-        name = "satetapong sanguansuk",
+        email: string,
+        name?: string,
         avatar = ""
       ) => {
+        const cleanEmail = email.trim();
+        const cleanName = (name && name.trim()) || cleanEmail.split("@")[0] || "Google User";
         const newUser: AuthUser = {
-          id: `usr-google-${Date.now()}`,
-          name: name,
-          email: email,
+          id: `usr-google-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          name: cleanName,
+          email: cleanEmail,
           avatar: avatar,
           role: "ผู้ใช้ Google",
         };

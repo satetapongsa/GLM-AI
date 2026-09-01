@@ -3,27 +3,36 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { upsertUser } from "@/lib/db/neon";
 
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+
 export const authOptions: NextAuthOptions = {
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []),
+    GoogleProvider({
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
     CredentialsProvider({
       name: "Email & Password",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        name: { label: "Name", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email) return null;
+        const displayName = credentials.name || credentials.email.split("@")[0] || "User";
         return {
-          id: `usr-${Date.now()}`,
-          name: credentials.email.split("@")[0] || "User",
+          id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          name: displayName,
           email: credentials.email,
         };
       },
@@ -45,8 +54,8 @@ export const authOptions: NextAuthOptions = {
           await upsertUser({
             id: user.id,
             email: user.email,
-            name: user.name,
-            avatar: user.image,
+            name: user.name || user.email.split("@")[0],
+            avatar: user.image || undefined,
             authProvider: account?.provider || "credentials",
             role: "user",
           });
