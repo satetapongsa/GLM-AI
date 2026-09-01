@@ -35,6 +35,8 @@ import {
   Plus,
   Minus,
   UserCheck,
+  Database,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -138,6 +140,33 @@ export function SettingsView() {
     }
   };
 
+  // Database Explorer State
+  const [selectedDbTable, setSelectedDbTable] = useState<string>("users");
+  const [dbData, setDbData] = useState<{
+    tableCounts: Record<string, number>;
+    rows: any[];
+    currentTable: string;
+    totalRowsInView: number;
+  } | null>(null);
+  const [isLoadingDbData, setIsLoadingDbData] = useState(false);
+  const [dbSearchFilter, setDbSearchFilter] = useState("");
+
+  const fetchDbData = async (table = selectedDbTable) => {
+    setIsLoadingDbData(true);
+    setSelectedDbTable(table);
+    try {
+      const res = await fetch(`/api/admin/database?table=${encodeURIComponent(table)}`);
+      const data = await res.json();
+      if (data.success) {
+        setDbData(data);
+      }
+    } catch (e) {
+      console.error("Error fetching database explorer data:", e);
+    } finally {
+      setIsLoadingDbData(false);
+    }
+  };
+
   const handleToggleOp = async (targetUser: any) => {
     setUserActionLoading(targetUser.id);
     try {
@@ -195,9 +224,9 @@ export function SettingsView() {
   };
 
   const handleSetTokens = async (targetUser: any, delta: number) => {
-    const currentLimit = targetUser.custom_daily_limit || 1000;
-    const newLimit = Math.max(100, currentLimit + delta);
     setUserActionLoading(targetUser.id);
+    const currentLimit = targetUser.custom_daily_limit || 1000;
+    const newLimit = Math.max(0, currentLimit + delta);
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
@@ -227,6 +256,7 @@ export function SettingsView() {
     if (activeTab === "admin") {
       fetchAdminStats();
       fetchAdminUsers();
+      fetchDbData();
     }
   }, [activeTab]);
 
@@ -734,9 +764,21 @@ export function SettingsView() {
                                       </span>
                                     )}
                                   </div>
-                                  <span className="text-[11px] text-slate-400 block truncate font-mono">
-                                    {u.email}
-                                  </span>
+                                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                    <span className="text-[11px] text-slate-400 font-mono">
+                                      {u.email}
+                                    </span>
+                                    {u.last_ip_address ? (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 text-[10px] font-mono border border-sky-500/25 font-semibold">
+                                        <Globe className="h-2.5 w-2.5" />
+                                        <span>IP: {u.last_ip_address}</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] text-slate-500 font-mono">
+                                        🌐 IP: -
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
 
@@ -837,6 +879,131 @@ export function SettingsView() {
                   ) : (
                     <div className="py-8 text-center text-xs text-slate-500">
                       {isLoadingUsers ? "กำลังโหลดรายชื่อผู้ใช้จาก Neon DB..." : "ยังไม่มีข้อมูลผู้ใช้ในระบบ"}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Neon Database Live Explorer Section */}
+              <div className="p-4 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      <Database className="h-4 w-4 text-emerald-400" />
+                      <span>ตรวจสอบข้อมูลในฐานข้อมูล (Neon PostgreSQL Live Explorer)</span>
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      ดูข้อมูลแถวจริงทั้งหมดที่บันทึกอยู่ในฐานข้อมูล Neon แบบสดๆ
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fetchDbData(selectedDbTable)}
+                    disabled={isLoadingDbData}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#282a2c] hover:bg-[#333538] text-slate-200 border border-white/10 transition-colors cursor-pointer shrink-0"
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", isLoadingDbData && "animate-spin text-emerald-400")} />
+                    <span>รีเฟรชฐานข้อมูล</span>
+                  </button>
+                </div>
+
+                {/* Table Selection Pills */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { id: "users", label: "👤 ผู้ใช้งาน (users)", count: dbData?.tableCounts?.users },
+                    { id: "user_individual_prompts", label: "💬 ประวัติคำถามรายบุคคล (user_individual_prompts)", count: dbData?.tableCounts?.user_individual_prompts },
+                    { id: "cloud_conversations", label: "🗂️ ประวัติห้องแชท (cloud_conversations)", count: dbData?.tableCounts?.cloud_conversations },
+                    { id: "cloud_messages", label: "📝 ข้อความแชท (cloud_messages)", count: dbData?.tableCounts?.cloud_messages },
+                    { id: "visitor_logs", label: "🌐 บันทึกผู้เข้าชม (visitor_logs)", count: dbData?.tableCounts?.visitor_logs },
+                  ].map((tbl) => (
+                    <button
+                      key={tbl.id}
+                      type="button"
+                      onClick={() => fetchDbData(tbl.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer border",
+                        selectedDbTable === tbl.id
+                          ? "bg-emerald-600/20 text-emerald-300 border-emerald-500/40 font-semibold shadow-xs"
+                          : "bg-[#131314] hover:bg-[#282a2c] text-slate-400 border-white/5"
+                      )}
+                    >
+                      <span>{tbl.label}</span>
+                      <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-black/40 text-[10px] font-mono text-slate-300">
+                        {tbl.count ?? 0}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Search in current table */}
+                <div className="relative">
+                  <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder={`ค้นหาในตาราง ${selectedDbTable}...`}
+                    value={dbSearchFilter}
+                    onChange={(e) => setDbSearchFilter(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#131314] text-white text-xs border border-white/10 focus:border-emerald-500 focus:outline-none placeholder:text-slate-500"
+                  />
+                </div>
+
+                {/* Table Data Render */}
+                <div className="rounded-xl border border-white/10 overflow-hidden bg-[#131314]">
+                  {isLoadingDbData ? (
+                    <div className="py-12 text-center text-xs text-slate-500">
+                      <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2 text-emerald-400" />
+                      กำลังดึงข้อมูลตาราง {selectedDbTable} จากฐานข้อมูล...
+                    </div>
+                  ) : !dbData?.rows || dbData.rows.length === 0 ? (
+                    <div className="py-12 text-center text-xs text-slate-500 italic">
+                      ไม่พบข้อมูลในตารางนี้
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto max-h-[50vh]">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead className="sticky top-0 bg-[#1e1f20] border-b border-white/10 text-slate-300 font-mono text-[11px]">
+                          <tr>
+                            {Object.keys(dbData.rows[0]).map((colKey) => (
+                              <th key={colKey} className="px-3 py-2 whitespace-nowrap font-semibold border-r border-white/5">
+                                {colKey}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 text-slate-300 font-sans text-xs">
+                          {dbData.rows
+                            .filter((row) => {
+                              if (!dbSearchFilter.trim()) return true;
+                              const rowStr = JSON.stringify(row).toLowerCase();
+                              return rowStr.includes(dbSearchFilter.toLowerCase());
+                            })
+                            .map((row, rIdx) => (
+                              <tr key={rIdx} className="hover:bg-white/[0.02] transition-colors">
+                                {Object.entries(row).map(([k, val], cIdx) => (
+                                  <td
+                                    key={cIdx}
+                                    className="px-3 py-2 whitespace-nowrap text-xs border-r border-white/5 font-mono max-w-xs truncate"
+                                    title={String(val ?? "")}
+                                  >
+                                    {k === "last_ip_address" || k === "ip_address" ? (
+                                      <span className="text-sky-400 font-bold">{String(val ?? "-")}</span>
+                                    ) : k === "is_op" ? (
+                                      val ? <span className="text-amber-400 font-bold">TRUE (OP)</span> : <span className="text-slate-600">false</span>
+                                    ) : k === "is_suspended" ? (
+                                      val ? <span className="text-red-400 font-bold">SUSPENDED</span> : <span className="text-emerald-500">active</span>
+                                    ) : val === null || val === undefined ? (
+                                      <span className="text-slate-600 italic">null</span>
+                                    ) : typeof val === "object" ? (
+                                      JSON.stringify(val)
+                                    ) : (
+                                      String(val)
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>

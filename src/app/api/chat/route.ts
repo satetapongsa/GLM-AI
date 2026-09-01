@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAIProvider } from "@/lib/providers";
 import { AVAILABLE_MODELS } from "@/lib/config/models";
-import { logUserPrompt, logIndividualUserPrompt, getUserByEmail } from "@/lib/db/neon";
+import { logUserPrompt, logIndividualUserPrompt, getUserByEmail, updateUserIpAddress } from "@/lib/db/neon";
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,6 +57,11 @@ export async function POST(req: NextRequest) {
       }).catch((err) => {
         console.error("Non-fatal: failed to log individual user prompt to Neon DB:", err);
       });
+
+      // Update user's last known IP in users table
+      if (userEmail && userEmail !== "guest_user") {
+        updateUserIpAddress(userEmail, ipAddress).catch(() => {});
+      }
     }
 
     const currentModel = AVAILABLE_MODELS.find((m) => m.id === modelId);

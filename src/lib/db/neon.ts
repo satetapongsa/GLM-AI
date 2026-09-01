@@ -10,6 +10,7 @@ export interface DbUser {
   is_op?: boolean;
   is_suspended?: boolean;
   custom_daily_limit?: number;
+  last_ip_address?: string | null;
   created_at?: string;
   last_login_at?: string;
 }
@@ -104,6 +105,9 @@ export async function ensureTablesExist() {
     `;
     await sql`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_daily_limit INTEGER DEFAULT 1000;
+    `;
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS last_ip_address VARCHAR(45);
     `;
 
     await sql`
@@ -267,6 +271,7 @@ export async function upsertUser(user: {
   avatar?: string | null;
   authProvider?: string;
   role?: string;
+  ipAddress?: string;
 }) {
   const sql = getDb();
   if (!sql) return null;
@@ -285,6 +290,7 @@ export async function upsertUser(user: {
       avatar,
       auth_provider,
       role,
+      last_ip_address,
       created_at,
       last_login_at
     )
@@ -295,6 +301,7 @@ export async function upsertUser(user: {
       ${user.avatar || null},
       ${provider},
       ${userRole},
+      ${user.ipAddress || null},
       NOW(),
       NOW()
     )
@@ -303,11 +310,29 @@ export async function upsertUser(user: {
       name = COALESCE(EXCLUDED.name, users.name),
       avatar = COALESCE(EXCLUDED.avatar, users.avatar),
       last_login_at = NOW(),
+      last_ip_address = COALESCE(EXCLUDED.last_ip_address, users.last_ip_address),
       auth_provider = EXCLUDED.auth_provider
-    RETURNING id, email, name, avatar, auth_provider, role, created_at, last_login_at;
+    RETURNING id, email, name, avatar, auth_provider, role, last_ip_address, created_at, last_login_at;
   `;
 
   return result[0] as DbUser;
+}
+
+export async function updateUserIpAddress(email: string, ipAddress: string) {
+  const sql = getDb();
+  if (!sql || !email || email === "guest_user" || !ipAddress || ipAddress === "unknown") return;
+
+  await ensureTablesExist();
+
+  try {
+    await sql`
+      UPDATE users 
+      SET last_ip_address = ${ipAddress}, last_login_at = NOW()
+      WHERE email = ${email};
+    `;
+  } catch (e) {
+    console.error("Non-fatal: failed to update user IP:", e);
+  }
 }
 
 export async function saveUploadedMedia(data: {
@@ -604,6 +629,7 @@ export async function getUserByEmail(email: string): Promise<DbUser | null> {
              COALESCE(is_op, FALSE) as is_op, 
              COALESCE(is_suspended, FALSE) as is_suspended, 
              COALESCE(custom_daily_limit, 1000) as custom_daily_limit,
+             last_ip_address,
              created_at, last_login_at
       FROM users
       WHERE email = ${email}
@@ -629,6 +655,7 @@ export async function getAllUsersForAdmin(): Promise<DbUser[]> {
              COALESCE(is_op, FALSE) as is_op, 
              COALESCE(is_suspended, FALSE) as is_suspended, 
              COALESCE(custom_daily_limit, 1000) as custom_daily_limit,
+             last_ip_address,
              created_at, last_login_at
       FROM users
       ORDER BY created_at DESC;
