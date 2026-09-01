@@ -5,6 +5,7 @@ import {
   saveCloudMessage,
   deleteCloudConversation,
   renameCloudConversation,
+  logIndividualUserPrompt,
 } from "@/lib/db/neon";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,18 @@ export async function POST(req: NextRequest) {
         modelName: message.modelName,
         createdAt: message.createdAt,
       });
+
+      // Also log into individual user questions history if role is user
+      if (message.role === "user" && message.content?.trim()) {
+        logIndividualUserPrompt({
+          userEmail,
+          prompt: message.content.trim(),
+          modelId: message.modelId,
+          conversationId: message.conversationId,
+          createdAt: message.createdAt,
+        }).catch(() => {});
+      }
+
       return NextResponse.json({ success: true });
     }
 

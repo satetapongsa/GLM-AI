@@ -82,6 +82,32 @@ export function SettingsView() {
   const [userActionLoading, setUserActionLoading] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
 
+  // Per-User Questions Modal State
+  const [viewingUserQuestions, setViewingUserQuestions] = useState<{ email: string; name?: string } | null>(null);
+  const [userQuestionsList, setUserQuestionsList] = useState<any[]>([]);
+  const [isLoadingUserQuestions, setIsLoadingUserQuestions] = useState(false);
+  const [questionSearchFilter, setQuestionSearchFilter] = useState("");
+
+  const handleViewUserQuestions = async (targetUser: { email: string; name?: string }) => {
+    setViewingUserQuestions(targetUser);
+    setIsLoadingUserQuestions(true);
+    setQuestionSearchFilter("");
+    try {
+      const res = await fetch(`/api/admin/questions?email=${encodeURIComponent(targetUser.email)}`);
+      const data = await res.json();
+      if (data.success && data.questions) {
+        setUserQuestionsList(data.questions);
+      } else {
+        setUserQuestionsList([]);
+      }
+    } catch (e) {
+      console.error("Error fetching user questions:", e);
+      setUserQuestionsList([]);
+    } finally {
+      setIsLoadingUserQuestions(false);
+    }
+  };
+
   const fetchAdminStats = async () => {
     setIsLoadingAdmin(true);
     try {
@@ -792,6 +818,17 @@ export function SettingsView() {
                                   <Ban className="h-3 w-3" />
                                   <span>{u.is_suspended ? "ปลดระงับ (Unban)" : "ระงับบัญชี (Ban)"}</span>
                                 </button>
+
+                                {/* View User Questions History Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleViewUserQuestions(u)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-all cursor-pointer shadow-xs active:scale-95"
+                                  title="ดูประวัติคำถามทั้งหมดของคนนี้"
+                                >
+                                  <MessageSquare className="h-3 w-3" />
+                                  <span>ดูประวัติคำถาม</span>
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1024,6 +1061,106 @@ export function SettingsView() {
               className="bg-red-600 hover:bg-red-700 text-white border-transparent px-4 py-2 text-xs font-semibold shadow-md"
             >
               ยืนยันลบทั้งหมด
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Per-User Question History Modal */}
+      <Modal
+        isOpen={!!viewingUserQuestions}
+        onClose={() => setViewingUserQuestions(null)}
+        maxWidth="2xl"
+        title={
+          <div className="flex items-center gap-2.5 text-sky-400">
+            <MessageSquare className="h-5 w-5" />
+            <span className="text-base font-bold text-white">
+              ประวัติคำถามรายบุคคล: {viewingUserQuestions?.name || viewingUserQuestions?.email}
+            </span>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          {/* User Info Bar & Search */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-xl bg-[#131314] border border-[rgba(255,255,255,0.06)]">
+            <div className="text-xs">
+              <span className="text-slate-400">บัญชี: </span>
+              <span className="text-white font-semibold font-mono">{viewingUserQuestions?.email}</span>
+              <span className="ml-3 px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold">
+                ถามทั้งหมด {userQuestionsList.length} คำถาม
+              </span>
+            </div>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="ค้นหาในคำถามของคนนี้..."
+                value={questionSearchFilter}
+                onChange={(e) => setQuestionSearchFilter(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-[#282a2c] text-white text-xs border border-[rgba(255,255,255,0.08)] focus:border-sky-500 focus:outline-none placeholder:text-slate-500"
+              />
+            </div>
+          </div>
+
+          {/* Question List */}
+          <div className="max-h-[55vh] overflow-y-auto space-y-2.5 pr-1">
+            {isLoadingUserQuestions ? (
+              <div className="py-12 text-center text-xs text-slate-500">
+                <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2 text-sky-400" />
+                กำลังดึงประวัติคำถามของ {viewingUserQuestions?.email} จากฐานข้อมูล...
+              </div>
+            ) : userQuestionsList.length === 0 ? (
+              <div className="py-12 text-center text-xs text-slate-500 italic">
+                ผู้ใช้นี้ยังไม่มีประวัติการส่งคำถามในระบบ
+              </div>
+            ) : (
+              userQuestionsList
+                .filter((q) =>
+                  questionSearchFilter.trim() === ""
+                    ? true
+                    : q.prompt.toLowerCase().includes(questionSearchFilter.toLowerCase())
+                )
+                .map((q, idx) => (
+                  <div
+                    key={q.id || idx}
+                    className="p-3.5 rounded-xl bg-[#131314] border border-[rgba(255,255,255,0.06)] hover:border-sky-500/30 transition-all space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 text-[11px]">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono font-semibold text-[10px]">
+                          {q.model_id || "gemini-3.1-flash-lite"}
+                        </span>
+                        {q.ip_address && q.ip_address !== "unknown" && (
+                          <span className="text-[10px] text-slate-500 font-mono">
+                            IP: {q.ip_address}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-slate-400 text-[10.5px]">
+                        {new Date(q.created_at).toLocaleString("th-TH", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-200 leading-relaxed font-sans bg-[#1e1f20] p-2.5 rounded-lg border border-[rgba(255,255,255,0.04)] select-text">
+                      {q.prompt}
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setViewingUserQuestions(null)}
+              className="px-4 py-2 text-xs"
+            >
+              ปิดหน้าต่าง
             </Button>
           </div>
         </div>

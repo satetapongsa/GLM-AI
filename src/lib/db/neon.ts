@@ -200,6 +200,56 @@ export async function ensureTablesExist() {
       CREATE INDEX IF NOT EXISTS idx_cloud_msg_user ON cloud_messages(user_email);
     `;
 
+    // 8. Individual User Questions & Prompts History (แยกเก็บประวัติคำถามเป็นรายบุคคล)
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_individual_prompts (
+        id SERIAL PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        user_name VARCHAR(255),
+        prompt TEXT NOT NULL,
+        model_id VARCHAR(100) DEFAULT 'gemini-3.1-flash-lite',
+        conversation_id VARCHAR(255),
+        ip_address VARCHAR(45),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_indiv_prompts_user ON user_individual_prompts(user_email, created_at DESC);
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_indiv_prompts_created ON user_individual_prompts(created_at DESC);
+    `;
+
+    // Automatic migration & backfill from existing user_prompts & cloud_messages if empty
+    try {
+      const countCheck = await sql`SELECT COUNT(*) as count FROM user_individual_prompts;`;
+      if (Number(countCheck[0]?.count || 0) === 0) {
+        // Backfill from user_prompts
+        await sql`
+          INSERT INTO user_individual_prompts (user_email, prompt, model_id, ip_address, created_at)
+          SELECT 
+            COALESCE(user_email, 'guest_user'), 
+            prompt, 
+            COALESCE(model_id, 'deepseek-chat'), 
+            ip_address, 
+            created_at
+          FROM user_prompts
+          WHERE prompt IS NOT NULL AND prompt != '';
+        `;
+
+        // Update user_name by matching user_email in users table
+        await sql`
+          UPDATE user_individual_prompts uip
+          SET user_name = u.name
+          FROM users u
+          WHERE uip.user_email = u.email AND (uip.user_name IS NULL OR uip.user_name = '');
+        `;
+      }
+    } catch (bfErr) {
+      console.warn("Backfill user_individual_prompts note:", bfErr);
+    }
+
     isInitialized = true;
   } catch (error) {
     console.error("Neon DB Initialization Error:", error);
@@ -843,6 +893,109 @@ export async function renameCloudConversation(id: string, userEmail: string, tit
     return false;
   }
 }
+
+// ----------------------------------------------------
+// Individual User Questions History Queries (แยกเก็บประวัติคำถามรายบุคคล)
+// ----------------------------------------------------
+
+export async function logIndividualUserPrompt(data: {
+  userEmail: string;
+  userName?: string;
+  prompt: string;
+  modelId?: string;
+  conversationId?: string;
+  ipAddress?: string;
+  createdAt?: string;
+}) {
+  const sql = getDb();
+  if (!sql) return null;
+
+  await ensureTablesExist();
+
+  try {
+    const createdIso = data.createdAt ? new Date(data.createdAt).toISOString() : new Date().toISOString();
+    const result = await sql`
+      INSERT INTO user_individual_prompts (
+        user_email,
+        user_name,
+        prompt,
+        model_id,
+        conversation_id,
+        ip_address,
+        created_at
+      )
+      VALUES (
+        ${data.userEmail || "guest_user"},
+        ${data.userName || null},
+        ${data.prompt},
+        ${data.modelId || "gemini-3.1-flash-lite"},
+        ${data.conversationId || null},
+        ${data.ipAddress || "unknown"},
+        ${createdIso}
+      )
+      RETURNING id, created_at;
+    `;
+    return result[0];
+  } catch (err) {
+    console.error("Error logging individual user prompt:", err);
+    return null;
+  }
+}
+
+export async function getIndividualUserPrompts(userEmail: string, limit = 100) {
+  const sql = getDb();
+  if (!sql || !userEmail) return [];
+
+  await ensureTablesExist();
+
+  try {
+    const rows = await sql`
+      SELECT id, user_email, user_name, prompt, model_id, conversation_id, ip_address, created_at
+      FROM user_individual_prompts
+      WHERE user_email = ${userEmail}
+      ORDER BY created_at DESC
+      LIMIT ${limit};
+    `;
+    return rows;
+  } catch (err) {
+    console.error("Error fetching individual user prompts:", err);
+    return [];
+  }
+}
+
+export async function getAllUsersQuestionSummary() {
+  const sql = getDb();
+  if (!sql) return [];
+
+  await ensureTablesExist();
+
+  try {
+    const rows = await sql`
+      SELECT 
+        uip.user_email,
+        COALESCE(MAX(uip.user_name), MAX(u.name), split_part(uip.user_email, '@', 1)) as user_name,
+        MAX(u.avatar) as avatar,
+        COUNT(*) as total_questions,
+        MAX(uip.created_at) as last_question_at,
+        (
+          SELECT prompt 
+          FROM user_individual_prompts sub 
+          WHERE sub.user_email = uip.user_email 
+          ORDER BY sub.created_at DESC 
+          LIMIT 1
+        ) as last_question
+      FROM user_individual_prompts uip
+      LEFT JOIN users u ON u.email = uip.user_email
+      GROUP BY uip.user_email
+      ORDER BY last_question_at DESC;
+    `;
+    return rows;
+  } catch (err) {
+    console.error("Error fetching users question summary:", err);
+    return [];
+  }
+}
+
 
 
 

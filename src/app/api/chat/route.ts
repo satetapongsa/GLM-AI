@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAIProvider } from "@/lib/providers";
 import { AVAILABLE_MODELS } from "@/lib/config/models";
-import { logUserPrompt, getUserByEmail } from "@/lib/db/neon";
+import { logUserPrompt, logIndividualUserPrompt, getUserByEmail } from "@/lib/db/neon";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,9 +14,10 @@ export async function POST(req: NextRequest) {
 
     // Check if user is suspended or granted OP by Admin in Neon DB
     let effectiveOpMode = isOpMode === true;
+    let dbUser: any = null;
     if (userEmail && userEmail !== "guest_user") {
       try {
-        const dbUser = await getUserByEmail(userEmail);
+        dbUser = await getUserByEmail(userEmail);
         if (dbUser?.is_suspended) {
           return NextResponse.json(
             { error: "บัญชีของคุณถูกระงับการใช้งานโดยผู้ดูแลระบบ (Account Suspended by Admin)" },
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const realIp = req.headers.get("x-real-ip");
     const ipAddress = forwardedFor ? forwardedFor.split(",")[0].trim() : realIp || "unknown";
 
-    // Asynchronously log ONLY the user question/prompt to Neon PostgreSQL (Never logs AI answers to save DB space)
+    // Asynchronously log user question/prompt into general and per-individual tables in Neon PostgreSQL
     if (prompt.trim() !== "/op" && prompt.trim() !== "/deop") {
       logUserPrompt({
         prompt: prompt.trim(),
@@ -45,6 +46,16 @@ export async function POST(req: NextRequest) {
         ipAddress,
       }).catch((err) => {
         console.error("Non-fatal: failed to log user prompt to Neon DB:", err);
+      });
+
+      logIndividualUserPrompt({
+        prompt: prompt.trim(),
+        modelId: modelId || "deepseek-chat",
+        userEmail: userEmail || "guest_user",
+        userName: dbUser?.name || undefined,
+        ipAddress,
+      }).catch((err) => {
+        console.error("Non-fatal: failed to log individual user prompt to Neon DB:", err);
       });
     }
 
