@@ -2,7 +2,7 @@ import { Conversation, Prompt, Assistant, FileItem, Message, UserSettings } from
 
 export const DEFAULT_SETTINGS: UserSettings = {
   theme: "dark",
-  defaultModelId: "deepseek-chat",
+  defaultModelId: "gemini-3.1-flash-lite",
   enterToSend: true,
   streamingSpeed: "natural",
   soundEffects: false,

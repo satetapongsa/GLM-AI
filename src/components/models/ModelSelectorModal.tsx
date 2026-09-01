@@ -4,6 +4,7 @@ import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { useModelStore } from "@/lib/store/useModelStore";
 import { useChatStore } from "@/lib/store/useChatStore";
+import { DEFAULT_MODEL_ID } from "@/lib/config/models";
 import { ModelCard } from "./ModelCard";
 import { ModelSettingsModal } from "./ModelSettingsModal";
 
@@ -16,6 +17,7 @@ export function ModelSelectorModal() {
   } = useModelStore();
 
   const { activeModelId } = useChatStore();
+  const currentSelectedId = activeModelId || DEFAULT_MODEL_ID;
 
   return (
     <>
@@ -36,7 +38,7 @@ export function ModelSelectorModal() {
               <ModelCard
                 key={model.id}
                 model={model}
-                isSelected={activeModelId === model.id}
+                isSelected={currentSelectedId === model.id}
                 onSelect={(id) => selectModel(id)}
               />
             ))}
