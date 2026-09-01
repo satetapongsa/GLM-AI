@@ -68,6 +68,13 @@ export async function POST(req: NextRequest) {
       if (!message?.id || !message?.conversationId) {
         return NextResponse.json({ success: false, error: "Missing message" }, { status: 400 });
       }
+
+      // Optimization: Do NOT save AI assistant answers to save database storage
+      // User directive: เก็บแค่คำถามของรายคนก็พอ ไม่ต้องเก็บคำตอบเอไอ
+      if (message.role === "assistant") {
+        return NextResponse.json({ success: true, skipped: true });
+      }
+
       await saveCloudMessage({
         id: message.id,
         conversationId: message.conversationId,

@@ -542,22 +542,7 @@ export const useChatStore = create<ChatState>()(
             };
           });
 
-          // Fire-and-forget sync assistant response message to Neon Database
-          const currentUserEmail = useAuthStore.getState().user?.email;
-          if (currentUserEmail && currentUserEmail !== "guest_user") {
-            const assistantMsg = get().messages[convId as string]?.find((m) => m.id === assistantMessageId);
-            if (assistantMsg) {
-              fetch("/api/chat/sync", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  action: "save_message",
-                  userEmail: currentUserEmail,
-                  message: assistantMsg,
-                }),
-              }).catch(() => {});
-            }
-          }
+          // Assistant responses are kept in local state/storage and not synced to cloud DB to save database storage
         }
       },
 

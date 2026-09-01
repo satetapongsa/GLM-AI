@@ -256,6 +256,14 @@ export async function ensureTablesExist() {
       console.warn("Backfill user_individual_prompts note:", bfErr);
     }
 
+    // Optimization: Purge all AI assistant answers from cloud_messages to reclaim storage space
+    // as requested: "ไม่ต้อเก็บข้อมูล คำตอบของเอไอที่ตอบมาให้ทุกคน เพราะมันเปลืองพท้นที่"
+    try {
+      await sql`DELETE FROM cloud_messages WHERE role = 'assistant';`;
+    } catch {
+      // ignore
+    }
+
     isInitialized = true;
   } catch (error) {
     console.error("Neon DB Initialization Error:", error);
@@ -779,6 +787,18 @@ export async function saveCloudConversation(data: {
   }
 }
 
+export async function purgeAiResponsesFromDb() {
+  const sql = getDb();
+  if (!sql) return { success: false, deletedCount: 0 };
+  try {
+    const res = await sql`DELETE FROM cloud_messages WHERE role = 'assistant';`;
+    return { success: true, deletedCount: res.length || 0 };
+  } catch (err) {
+    console.error("Error purging AI responses:", err);
+    return { success: false, error: String(err) };
+  }
+}
+
 export async function saveCloudMessage(data: {
   id: string;
   conversationId: string;
@@ -789,6 +809,12 @@ export async function saveCloudMessage(data: {
   modelName?: string;
   createdAt?: string;
 }) {
+  // Never save AI responses to database as per user request to conserve storage
+  // Only individual user prompts are saved
+  if (data.role === "assistant") {
+    return true;
+  }
+
   const sql = getDb();
   if (!sql) return false;
 
