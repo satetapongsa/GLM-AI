@@ -20,10 +20,10 @@ export function ProviderIcon({
   const [imgError, setImgError] = useState(false);
 
   const sizeClasses = {
-    sm: "h-6 w-6 p-0.5 rounded-lg",
-    md: "h-8 w-8 p-1 rounded-xl",
-    lg: "h-10 w-10 p-1.5 rounded-2xl",
-    xl: "h-12 w-12 p-2 rounded-2xl",
+    sm: "h-6 w-6",
+    md: "h-9 w-9",
+    lg: "h-11 w-11",
+    xl: "h-13 w-13",
   };
 
   const p = (provider || "").toLowerCase();
@@ -79,7 +79,7 @@ export function ProviderIcon({
   return (
     <div
       className={cn(
-        "flex items-center justify-center shrink-0 shadow-xs overflow-hidden bg-[#131314] border border-[rgba(255,255,255,0.12)]",
+        "flex items-center justify-center shrink-0 shadow-xs overflow-hidden rounded-full bg-[#131314] border border-[rgba(255,255,255,0.12)]",
         sizeClasses[size],
         className
       )}
@@ -91,7 +91,7 @@ export function ProviderIcon({
         alt={title}
         referrerPolicy="no-referrer"
         onError={() => setImgError(true)}
-        className="w-full h-full object-contain select-none transition-transform"
+        className="w-full h-full object-cover select-none"
         loading="eager"
       />
     </div>
