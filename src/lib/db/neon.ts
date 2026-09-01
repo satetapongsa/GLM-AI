@@ -162,6 +162,44 @@ export async function ensureTablesExist() {
       CREATE INDEX IF NOT EXISTS idx_prompts_created ON user_prompts(created_at DESC);
     `;
 
+    // 6. Cloud Sync Conversations Table (Stores full chat history across devices)
+    await sql`
+      CREATE TABLE IF NOT EXISTS cloud_conversations (
+        id VARCHAR(255) PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        model_id VARCHAR(100) DEFAULT 'gemini-3.1-flash-lite',
+        pinned BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_cloud_conv_user ON cloud_conversations(user_email, updated_at DESC);
+    `;
+
+    // 7. Cloud Sync Messages Table (Syncs all user & AI turns across every device)
+    await sql`
+      CREATE TABLE IF NOT EXISTS cloud_messages (
+        id VARCHAR(255) PRIMARY KEY,
+        conversation_id VARCHAR(255) NOT NULL REFERENCES cloud_conversations(id) ON DELETE CASCADE,
+        user_email VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        content TEXT NOT NULL,
+        model_id VARCHAR(100),
+        model_name VARCHAR(100),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_cloud_msg_conv ON cloud_messages(conversation_id, created_at ASC);
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_cloud_msg_user ON cloud_messages(user_email);
+    `;
+
     isInitialized = true;
   } catch (error) {
     console.error("Neon DB Initialization Error:", error);
@@ -606,5 +644,205 @@ export async function updateUserAdminControl(
     return null;
   }
 }
+
+// ----------------------------------------------------
+// Global Cloud Chat Sync Queries (Neon PostgreSQL)
+// ----------------------------------------------------
+
+export async function saveCloudConversation(data: {
+  id: string;
+  userEmail: string;
+  title: string;
+  modelId?: string;
+  pinned?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}) {
+  const sql = getDb();
+  if (!sql) return false;
+
+  await ensureTablesExist();
+
+  try {
+    const createdIso = data.createdAt ? new Date(data.createdAt).toISOString() : new Date().toISOString();
+    await sql`
+      INSERT INTO cloud_conversations (
+        id,
+        user_email,
+        title,
+        model_id,
+        pinned,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        ${data.id},
+        ${data.userEmail},
+        ${data.title},
+        ${data.modelId || "gemini-3.1-flash-lite"},
+        ${data.pinned || false},
+        ${createdIso},
+        NOW()
+      )
+      ON CONFLICT (id)
+      DO UPDATE SET
+        title = EXCLUDED.title,
+        model_id = EXCLUDED.model_id,
+        pinned = EXCLUDED.pinned,
+        updated_at = NOW();
+    `;
+    return true;
+  } catch (err) {
+    console.error("Error saving cloud conversation:", err);
+    return false;
+  }
+}
+
+export async function saveCloudMessage(data: {
+  id: string;
+  conversationId: string;
+  userEmail: string;
+  role: string;
+  content: string;
+  modelId?: string;
+  modelName?: string;
+  createdAt?: string;
+}) {
+  const sql = getDb();
+  if (!sql) return false;
+
+  await ensureTablesExist();
+
+  try {
+    const createdIso = data.createdAt ? new Date(data.createdAt).toISOString() : new Date().toISOString();
+    await sql`
+      INSERT INTO cloud_messages (
+        id,
+        conversation_id,
+        user_email,
+        role,
+        content,
+        model_id,
+        model_name,
+        created_at
+      )
+      VALUES (
+        ${data.id},
+        ${data.conversationId},
+        ${data.userEmail},
+        ${data.role},
+        ${data.content},
+        ${data.modelId || null},
+        ${data.modelName || null},
+        ${createdIso}
+      )
+      ON CONFLICT (id)
+      DO UPDATE SET
+        content = EXCLUDED.content,
+        model_id = EXCLUDED.model_id,
+        model_name = EXCLUDED.model_name;
+    `;
+    return true;
+  } catch (err) {
+    console.error("Error saving cloud message:", err);
+    return false;
+  }
+}
+
+export async function getCloudChatData(userEmail: string) {
+  const sql = getDb();
+  if (!sql || !userEmail) return { conversations: [], messages: {} };
+
+  await ensureTablesExist();
+
+  try {
+    const convRows = await sql`
+      SELECT id, title, model_id, pinned, created_at, updated_at
+      FROM cloud_conversations
+      WHERE user_email = ${userEmail}
+      ORDER BY updated_at DESC;
+    `;
+
+    const msgRows = await sql`
+      SELECT id, conversation_id, role, content, model_id, model_name, created_at
+      FROM cloud_messages
+      WHERE user_email = ${userEmail}
+      ORDER BY created_at ASC;
+    `;
+
+    const conversations = convRows.map((c) => ({
+      id: c.id,
+      title: c.title,
+      modelId: c.model_id || "gemini-3.1-flash-lite",
+      pinned: Boolean(c.pinned),
+      createdAt: c.created_at,
+      updatedAt: c.updated_at,
+      messageCount: 0,
+    }));
+
+    const messages: Record<string, any[]> = {};
+    msgRows.forEach((m) => {
+      if (!messages[m.conversation_id]) {
+        messages[m.conversation_id] = [];
+      }
+      messages[m.conversation_id].push({
+        id: m.id,
+        conversationId: m.conversation_id,
+        role: m.role,
+        content: m.content,
+        modelId: m.model_id,
+        modelName: m.model_name,
+        createdAt: m.created_at,
+      });
+    });
+
+    conversations.forEach((c) => {
+      c.messageCount = messages[c.id]?.length || 0;
+    });
+
+    return { conversations, messages };
+  } catch (err) {
+    console.error("Error fetching cloud chat data:", err);
+    return { conversations: [], messages: {} };
+  }
+}
+
+export async function deleteCloudConversation(id: string, userEmail: string) {
+  const sql = getDb();
+  if (!sql) return false;
+
+  await ensureTablesExist();
+
+  try {
+    await sql`
+      DELETE FROM cloud_conversations
+      WHERE id = ${id} AND user_email = ${userEmail};
+    `;
+    return true;
+  } catch (err) {
+    console.error("Error deleting cloud conversation:", err);
+    return false;
+  }
+}
+
+export async function renameCloudConversation(id: string, userEmail: string, title: string) {
+  const sql = getDb();
+  if (!sql) return false;
+
+  await ensureTablesExist();
+
+  try {
+    await sql`
+      UPDATE cloud_conversations
+      SET title = ${title}, updated_at = NOW()
+      WHERE id = ${id} AND user_email = ${userEmail};
+    `;
+    return true;
+  } catch (err) {
+    console.error("Error renaming cloud conversation:", err);
+    return false;
+  }
+}
+
 
 

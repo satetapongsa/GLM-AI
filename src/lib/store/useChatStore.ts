@@ -77,6 +77,7 @@ interface ChatState {
   regenerateResponse: (messageId: string) => Promise<void>;
   editMessageAndResend: (messageId: string, newContent: string) => Promise<void>;
   rateMessage: (messageId: string, rating: "like" | "dislike" | null) => void;
+  syncFromCloud: (userEmail: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -134,15 +135,44 @@ export const useChatStore = create<ChatState>()(
           },
         }));
 
+        // Fire-and-forget sync to Neon Database
+        const currentUserEmail = useAuthStore.getState().user?.email;
+        if (currentUserEmail && currentUserEmail !== "guest_user") {
+          fetch("/api/chat/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "save_conversation",
+              userEmail: currentUserEmail,
+              conversation: newConv,
+            }),
+          }).catch(() => {});
+        }
+
         return newId;
       },
 
-      renameConversation: (id, newTitle) =>
+      renameConversation: (id, newTitle) => {
         set((state) => ({
           conversations: state.conversations.map((c) =>
             c.id === id ? { ...c, title: newTitle, updatedAt: new Date().toISOString() } : c
           ),
-        })),
+        }));
+
+        const currentUserEmail = useAuthStore.getState().user?.email;
+        if (currentUserEmail && currentUserEmail !== "guest_user") {
+          fetch("/api/chat/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "rename_conversation",
+              userEmail: currentUserEmail,
+              id,
+              title: newTitle,
+            }),
+          }).catch(() => {});
+        }
+      },
 
       togglePinConversation: (id) =>
         set((state) => ({
@@ -151,7 +181,7 @@ export const useChatStore = create<ChatState>()(
           ),
         })),
 
-      deleteConversation: (id) =>
+      deleteConversation: (id) => {
         set((state) => {
           const nextActiveId =
             state.activeConversationId === id
@@ -166,7 +196,21 @@ export const useChatStore = create<ChatState>()(
             messages: updatedMessages,
             activeConversationId: nextActiveId,
           };
-        }),
+        });
+
+        const currentUserEmail = useAuthStore.getState().user?.email;
+        if (currentUserEmail && currentUserEmail !== "guest_user") {
+          fetch("/api/chat/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "delete_conversation",
+              userEmail: currentUserEmail,
+              id,
+            }),
+          }).catch(() => {});
+        }
+      },
 
       clearAllConversations: () =>
         set({
@@ -304,6 +348,32 @@ export const useChatStore = create<ChatState>()(
           isStreaming: true,
           streamingMessageId: assistantMessageId,
         }));
+
+        // Fire-and-forget sync user message & conversation to Neon Database
+        const currentUserEmail = useAuthStore.getState().user?.email;
+        if (currentUserEmail && currentUserEmail !== "guest_user") {
+          const updatedConv = get().conversations.find((c) => c.id === convId);
+          if (updatedConv) {
+            fetch("/api/chat/sync", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "save_conversation",
+                userEmail: currentUserEmail,
+                conversation: updatedConv,
+              }),
+            }).catch(() => {});
+          }
+          fetch("/api/chat/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "save_message",
+              userEmail: currentUserEmail,
+              message: userMessage,
+            }),
+          }).catch(() => {});
+        }
 
         const controller = new AbortController();
         set({ abortController: controller });
@@ -471,6 +541,23 @@ export const useChatStore = create<ChatState>()(
               },
             };
           });
+
+          // Fire-and-forget sync assistant response message to Neon Database
+          const currentUserEmail = useAuthStore.getState().user?.email;
+          if (currentUserEmail && currentUserEmail !== "guest_user") {
+            const assistantMsg = get().messages[convId as string]?.find((m) => m.id === assistantMessageId);
+            if (assistantMsg) {
+              fetch("/api/chat/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "save_message",
+                  userEmail: currentUserEmail,
+                  message: assistantMsg,
+                }),
+              }).catch(() => {});
+            }
+          }
         }
       },
 
@@ -605,6 +692,51 @@ export const useChatStore = create<ChatState>()(
             ),
           },
         }));
+      },
+
+      syncFromCloud: async (userEmail: string) => {
+        if (!userEmail || userEmail === "guest_user") return;
+        try {
+          const res = await fetch(`/api/chat/sync?userEmail=${encodeURIComponent(userEmail)}`);
+          const data = await res.json();
+          if (data.success && data.conversations) {
+            set((state) => {
+              const localConvs = state.conversations || [];
+              const cloudConvs = data.conversations || [];
+
+              // Merge conversations by ID
+              const convMap = new Map<string, Conversation>();
+              localConvs.forEach((c) => convMap.set(c.id, c));
+              cloudConvs.forEach((c: Conversation) => convMap.set(c.id, c));
+
+              const mergedConversations = Array.from(convMap.values()).sort(
+                (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+              );
+
+              // Merge messages by ID per conversation
+              const mergedMessages = { ...state.messages };
+              if (data.messages) {
+                Object.keys(data.messages).forEach((convId) => {
+                  const cloudList = data.messages[convId] || [];
+                  const localList = mergedMessages[convId] || [];
+                  const msgMap = new Map<string, Message>();
+                  localList.forEach((m) => msgMap.set(m.id, m));
+                  cloudList.forEach((m: Message) => msgMap.set(m.id, m));
+                  mergedMessages[convId] = Array.from(msgMap.values()).sort(
+                    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                  );
+                });
+              }
+
+              return {
+                conversations: mergedConversations,
+                messages: mergedMessages,
+              };
+            });
+          }
+        } catch (e) {
+          console.error("Non-fatal: Cloud chat sync failed:", e);
+        }
       },
     }),
     {
