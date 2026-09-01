@@ -1,15 +1,39 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { upsertUser } from "@/lib/db/neon";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+    CredentialsProvider({
+      name: "Email & Password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email) return null;
+        return {
+          id: `usr-${Date.now()}`,
+          name: credentials.email.split("@")[0] || "User",
+          email: credentials.email,
+        };
+      },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET || "gml-secret-auth-key-2026-production-token",
+  pages: {
+    signIn: "/",
+    error: "/",
+  },
+  secret: process.env.NEXTAUTH_SECRET || "goomiru-secret-auth-key-2026-production-token",
   session: {
     strategy: "jwt",
   },
@@ -23,7 +47,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             avatar: user.image,
-            authProvider: account?.provider || "google",
+            authProvider: account?.provider || "credentials",
             role: "user",
           });
         } catch (err) {

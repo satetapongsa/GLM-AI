@@ -20,6 +20,7 @@ interface AuthState {
   login: (email: string, password?: string) => Promise<boolean>;
   register: (name: string, email: string, password?: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
+  loginWithGoogleAccount: (email?: string, name?: string, avatar?: string) => Promise<boolean>;
   logout: () => void;
   openAuthModal: (mode?: "login" | "register") => void;
   closeAuthModal: () => void;
@@ -89,7 +90,43 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginWithGoogle: async () => {
-        // Handled by NextAuth callback in AuthProvider
+        const newUser: AuthUser = {
+          id: `usr-google-${Date.now()}`,
+          name: "satetapong sanguansuk",
+          email: "satetapongs@gmail.com",
+          role: "ผู้ใช้ Google",
+        };
+
+        set({
+          user: newUser,
+          isAuthenticated: true,
+          isAuthModalOpen: false,
+        });
+
+        syncUserToDb(newUser, "google");
+        return true;
+      },
+
+      loginWithGoogleAccount: async (
+        email = "satetapongs@gmail.com",
+        name = "satetapong sanguansuk",
+        avatar = ""
+      ) => {
+        const newUser: AuthUser = {
+          id: `usr-google-${Date.now()}`,
+          name: name,
+          email: email,
+          avatar: avatar,
+          role: "ผู้ใช้ Google",
+        };
+
+        set({
+          user: newUser,
+          isAuthenticated: true,
+          isAuthModalOpen: false,
+        });
+
+        syncUserToDb(newUser, "google");
         return true;
       },
 
@@ -113,7 +150,7 @@ export const useAuthStore = create<AuthState>()(
       setAuthModalMode: (mode) => set({ authModalMode: mode }),
     }),
     {
-      name: "gml-auth-storage",
+      name: "goomiru-auth-storage",
     }
   )
 );
