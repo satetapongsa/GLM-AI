@@ -16,11 +16,12 @@ import {
   LogOut,
   LogIn,
   ChevronRight,
+  ShieldAlert,
 } from "lucide-react";
 
 export function UserProfileMenu({ collapsed = false }: { collapsed?: boolean }) {
   const { theme, setTheme } = useTheme();
-  const { setActiveTab } = useUIStore();
+  const { setActiveTab, openSettingsTab } = useUIStore();
   const { user, isAuthenticated, openLogoutConfirm, openAuthModal } = useAuthStore();
 
   const cycleTheme = () => {
@@ -44,6 +45,12 @@ export function UserProfileMenu({ collapsed = false }: { collapsed?: boolean }) 
       label: "บัญชีผู้ใช้",
       icon: <User className="h-4 w-4" />,
       onClick: () => setActiveTab("settings"),
+    },
+    {
+      id: "admin",
+      label: "แดชบอร์ดแอดมิน (Admin)",
+      icon: <ShieldAlert className="h-4 w-4 text-emerald-400" />,
+      onClick: () => openSettingsTab("admin"),
     },
     {
       id: "settings",

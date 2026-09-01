@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useSettingsStore } from "@/lib/store/useSettingsStore";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
+import { useUIStore } from "@/lib/store/useUIStore";
 import { BRAND_CONFIG } from "@/lib/config/brand";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -53,8 +54,18 @@ export function SettingsView() {
   const { settings, updateSettings } = useSettingsStore();
   const { clearAllConversations, conversations, messages } = useChatStore();
   const { user, isAuthenticated, logout, openAuthModal, openLogoutConfirm } = useAuthStore();
+  const { settingsInitialTab } = useUIStore();
 
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    (settingsInitialTab as SettingsTab) || "admin"
+  );
+
+  React.useEffect(() => {
+    if (settingsInitialTab) {
+      setActiveTab(settingsInitialTab as SettingsTab);
+    }
+  }, [settingsInitialTab]);
+
   const [isSaved, setIsSaved] = useState(false);
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);

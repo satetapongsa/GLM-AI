@@ -8,6 +8,7 @@ interface UIState {
   isCreateAssistantModalOpen: boolean;
   isUploadModalOpen: boolean;
   activeTab: "chat" | "prompts" | "saved" | "library" | "learn" | "assistants" | "settings";
+  settingsInitialTab: string;
 
   // Actions
   toggleSidebar: () => void;
@@ -19,6 +20,7 @@ interface UIState {
   setCreateAssistantModalOpen: (open: boolean) => void;
   setUploadModalOpen: (open: boolean) => void;
   setActiveTab: (tab: UIState["activeTab"]) => void;
+  openSettingsTab: (subTab?: string) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -29,6 +31,7 @@ export const useUIStore = create<UIState>((set) => ({
   isCreateAssistantModalOpen: false,
   isUploadModalOpen: false,
   activeTab: "chat",
+  settingsInitialTab: "general",
 
   toggleSidebar: () => set((s) => ({ isSidebarCollapsed: !s.isSidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
@@ -39,4 +42,10 @@ export const useUIStore = create<UIState>((set) => ({
   setCreateAssistantModalOpen: (open) => set({ isCreateAssistantModalOpen: open }),
   setUploadModalOpen: (open) => set({ isUploadModalOpen: open }),
   setActiveTab: (tab) => set({ activeTab: tab }),
+  openSettingsTab: (subTab = "general") =>
+    set({
+      activeTab: "settings",
+      settingsInitialTab: subTab,
+      isMobileDrawerOpen: false,
+    }),
 }));

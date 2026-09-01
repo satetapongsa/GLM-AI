@@ -25,6 +25,7 @@ import {
   Check,
   X,
   AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -37,8 +38,15 @@ export function Sidebar() {
     renameConversation,
   } = useChatStore();
 
-  const { isSidebarCollapsed, toggleSidebar, setSearchModalOpen, activeTab, setActiveTab } =
-    useUIStore();
+  const {
+    isSidebarCollapsed,
+    toggleSidebar,
+    setSearchModalOpen,
+    activeTab,
+    setActiveTab,
+    openSettingsTab,
+    settingsInitialTab,
+  } = useUIStore();
   const { user, isAuthenticated, openAuthModal, openLogoutConfirm } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [editingConvId, setEditingConvId] = useState<string | null>(null);
@@ -93,6 +101,13 @@ export function Sidebar() {
       icon: <BookOpen className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("learn"),
       active: activeTab === "learn",
+    },
+    {
+      id: "admin",
+      label: "แอดมิน (Admin Panel)",
+      icon: <ShieldAlert className="h-4 w-4 text-emerald-400" />,
+      onClick: () => openSettingsTab("admin"),
+      active: activeTab === "settings" && settingsInitialTab === "admin",
     },
   ];
 
