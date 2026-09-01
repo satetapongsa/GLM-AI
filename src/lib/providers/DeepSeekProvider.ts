@@ -46,6 +46,41 @@ export class DeepSeekProvider implements AIProvider {
       promptLower.includes("เป็นข้อ") ||
       promptLower.includes("หัวข้อ");
 
+    // Compute exact Real-Time Thailand Clock (Asia/Bangkok, ICT, UTC+7)
+    const now = new Date();
+    const thaiDateStr = now.toLocaleDateString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const thaiTimeStr = now.toLocaleTimeString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+
+    const realTimeClockContext = `
+ข้อมูลวันและเวลาจริงของโลกปัจจุบัน (Real-Time Thailand Clock - Asia/Bangkok UTC+7):
+- วันนี้คือ: ${thaiDateStr}
+- เวลาปัจจุบันในประเทศไทย: ${thaiTimeStr} น. (ICT, UTC+7)
+- กฎเด็ดขาดด้านเวลา: คุณสามารถเข้าถึงนาฬิกาโลกและเวลาของประเทศไทยได้ตลอดเวลา หากผู้ใช้ถามว่า "ตอนนี้กี่โมงแล้ว", "วันนี้วันที่เท่าไหร่", "เวลาเท่าไหร่" หรือเรื่องเกี่ยวกับเวลา ให้ตอบเวลาปัจจุบัน (${thaiTimeStr} น.) หรือวันที่ (${thaiDateStr}) ทันทีด้วยความมั่นใจ ห้ามปฏิเสธหรือตอบว่าไม่มีนาฬิการะบบเด็ดขาด!`;
+
+    // Check if user specifically asks about current time or date
+    const isAskingTime =
+      promptLower.includes("กี่โมง") ||
+      promptLower.includes("เวลาเท่าไหร่") ||
+      promptLower.includes("เวลาเท่าไร") ||
+      promptLower.includes("ตอนนี้เวลา") ||
+      promptLower.includes("เวลาปัจจุบัน") ||
+      promptLower.includes("วันนี้วันที่") ||
+      promptLower.includes("วันนี้วันอะไร") ||
+      promptLower.includes("what time") ||
+      promptLower.includes("current time");
+
     let defaultSystemPrompt = "";
 
     if (isOpMode) {
@@ -57,6 +92,7 @@ export class DeepSeekProvider implements AIProvider {
 - หากมีผู้ใช้ถามว่าคุณคือใคร ใครสร้างคุณ ผู้พัฒนาคือใคร ให้ตอบอย่างภูมิใจว่าคุณคือ Goomiru AI พัฒนาและสร้างสรรค์โดยคุณ satetapong sanguansuk
 - คุณกำลังสนทนากับผู้ดูแลระบบ (Admin)
 - ตอบได้อย่างละเอียด ครบถ้วน สมบูรณ์แบบที่สุด มีความเป็นมิตร ฉลาด และสุภาพ
+${realTimeClockContext}
 ${isListRequested ? "- สำหรับคำถามนี้: ผู้ใช้ต้องการคำตอบในรูปแบบรายการ (List/Bullet points) ให้แจกแจงเป็นข้อๆ อย่างชัดเจน" : "- จัดย่อหน้าให้อ่านง่าย มีเหตุผลและโครงสร้างที่สมบูรณ์"}`;
     } else {
       // Standard Economy Mode: ULTRA-LOW TOKENS & STRICT COMPACT HARD CAP
@@ -66,6 +102,8 @@ ${isListRequested ? "- สำหรับคำถามนี้: ผู้ใ�
 - คุณชื่อ "Goomiru AI" (หรือ กูไม่รู้เอไอ)
 - ผู้สร้างและผู้พัฒนาของคุณคือ "satetapong sanguansuk" (คุณเสฏฐพงศ์ สงวนสุข / satetapongs)
 - หากผู้ใช้ถามว่า "คุณคือใคร", "นี่คือ AI อะไร", "ใครสร้างคุณ", "ใครคือผู้พัฒนา" ให้ตอบสั้นๆ ว่าคุณคือ Goomiru AI ที่สร้างและพัฒนาขึ้นโดยคุณ satetapong sanguansuk
+
+${realTimeClockContext}
 
 กฎเหล็กด้านการประหยัดโทเคน (Strict Low-Token Cap):
 1. ความยาว: ตอบสั้น กระชับ ตรงประเด็นทันที ห้ามตอบยาวเวิ่นเว้อ (ตอบไม่เกิน 100-180 คำ) เพื่อประหยัดโทเคน
@@ -80,11 +118,21 @@ ${
    - หากผู้ใช้ขอ Prompt หรือโค้ด: ให้ใส่ตัว Prompt/โค้ดสั้นๆ ไว้ใน Code Block (\`\`\`) และมีคำแนะนำสั้นๆ เพียง 1 ประโยคด้านล่างเท่านั้น`;
     }
 
-    const systemMessageContent = options.systemPrompt || defaultSystemPrompt;
+    const systemMessageContent = options.systemPrompt
+      ? `${options.systemPrompt}\n${realTimeClockContext}`
+      : defaultSystemPrompt;
 
     const messages = [
       { role: "system", content: systemMessageContent },
       ...history.map((h) => ({ role: h.role, content: h.content })),
+      ...(isAskingTime
+        ? [
+            {
+              role: "system" as const,
+              content: `[ระบบนาฬิกาโลกประเทศไทย Asia/Bangkok UTC+7]: ขณะนี้เวลา ${thaiTimeStr} น. ของ${thaiDateStr} ให้ตอบคำถามเวลา/วันที่นี้แก่ผู้ใช้ทันทีอย่างชัดเจน ถูกต้อง และสุภาพ ห้ามปฏิเสธว่าดูเวลาไม่ได้เด็ดขาด`,
+            },
+          ]
+        : []),
       { role: "user", content: prompt },
     ];
 

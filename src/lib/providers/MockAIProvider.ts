@@ -8,6 +8,40 @@ export class MockAIProvider implements AIProvider {
     modelId: string,
     systemPrompt?: string
   ): { text: string; reasoning?: string } {
+    const promptLower = prompt.toLowerCase().trim();
+    const now = new Date();
+    const thaiDateStr = now.toLocaleDateString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const thaiTimeStr = now.toLocaleTimeString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+
+    if (
+      promptLower.includes("กี่โมง") ||
+      promptLower.includes("เวลาเท่าไหร่") ||
+      promptLower.includes("เวลาเท่าไร") ||
+      promptLower.includes("ตอนนี้เวลา") ||
+      promptLower.includes("เวลาปัจจุบัน") ||
+      promptLower.includes("วันนี้วันที่") ||
+      promptLower.includes("วันนี้วันอะไร") ||
+      promptLower.includes("what time") ||
+      promptLower.includes("current time")
+    ) {
+      return {
+        reasoning: `ตรวจสอบเวลาจากนาฬิกาโลกประเทศไทย (Asia/Bangkok UTC+7): ${thaiTimeStr} น.`,
+        text: `ตอนนี้เวลา **${thaiTimeStr} น.** ของ${thaiDateStr} (เวลาประเทศไทย Asia/Bangkok, UTC+7) ครับ ⏰🇹🇭`,
+      };
+    }
+
     const responses = [
       {
         reasoning: "กำลังค้นหาข้อมูลในคลังสมองของ GML... ติ๊กต่อก ติ๊กต่อก... สรุปได้ว่า:",
