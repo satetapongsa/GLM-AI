@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, ensureTablesExist } from "@/lib/db/neon";
+import { isRequestAdminAuthorized } from "@/lib/auth/adminAuth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isRequestAdminAuthorized(req)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Invalid or missing admin token" },
+      { status: 401 }
+    );
+  }
+
   const sql = getDb();
   if (!sql) {
     return NextResponse.json(

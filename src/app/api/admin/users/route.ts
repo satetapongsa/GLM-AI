@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllUsersForAdmin, updateUserAdminControl } from "@/lib/db/neon";
+import { isRequestAdminAuthorized } from "@/lib/auth/adminAuth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isRequestAdminAuthorized(req)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Invalid or missing admin token" },
+      { status: 401 }
+    );
+  }
+
   try {
     const users = await getAllUsersForAdmin();
     return NextResponse.json({
@@ -20,6 +28,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isRequestAdminAuthorized(req)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Invalid or missing admin token" },
+      { status: 401 }
+    );
+  }
   try {
     const body = await req.json();
     const { userId, action, value } = body;

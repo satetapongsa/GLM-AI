@@ -74,10 +74,20 @@ export function AdminDashboardView() {
   const [dbSearchFilter, setDbSearchFilter] = useState("");
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
+  const getAdminHeaders = () => {
+    const token = typeof window !== "undefined" ? sessionStorage.getItem("gml_admin_token") || "" : "";
+    return {
+      "Content-Type": "application/json",
+      "x-admin-token": token,
+    };
+  };
+
   const fetchAdminStats = async () => {
     setIsLoadingAdmin(true);
     try {
-      const res = await fetch("/api/admin/stats");
+      const res = await fetch("/api/admin/stats", {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success && data.stats) {
         setAdminStats(data.stats);
@@ -92,7 +102,9 @@ export function AdminDashboardView() {
   const fetchAdminUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/admin/users", {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success && data.users) {
         setAdminUsers(data.users);
@@ -108,7 +120,9 @@ export function AdminDashboardView() {
     setIsLoadingDbData(true);
     setSelectedDbTable(table);
     try {
-      const res = await fetch(`/api/admin/database?table=${encodeURIComponent(table)}`);
+      const res = await fetch(`/api/admin/database?table=${encodeURIComponent(table)}`, {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success) {
         setDbData(data);
@@ -125,7 +139,9 @@ export function AdminDashboardView() {
     setIsLoadingUserQuestions(true);
     setQuestionSearchFilter("");
     try {
-      const res = await fetch(`/api/admin/questions?email=${encodeURIComponent(targetUser.email)}`);
+      const res = await fetch(`/api/admin/questions?email=${encodeURIComponent(targetUser.email)}`, {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success && data.questions) {
         setUserQuestionsList(data.questions);
@@ -146,7 +162,7 @@ export function AdminDashboardView() {
       const nextVal = !targetUser.is_op;
       const res = await fetch("/api/admin/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           userId: targetUser.id,
           action: "toggle_op",
@@ -177,7 +193,7 @@ export function AdminDashboardView() {
       const nextVal = !targetUser.is_suspended;
       const res = await fetch("/api/admin/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           userId: targetUser.id,
           action: "toggle_suspend",
@@ -209,7 +225,7 @@ export function AdminDashboardView() {
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           userId: targetUser.id,
           action: "set_tokens",

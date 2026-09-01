@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIndividualUserPrompts, getAllUsersQuestionSummary } from "@/lib/db/neon";
+import { isRequestAdminAuthorized } from "@/lib/auth/adminAuth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isRequestAdminAuthorized(req)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Invalid or missing admin token" },
+      { status: 401 }
+    );
+  }
   try {
     const { searchParams } = new URL(req.url);
     const email = searchParams.get("email");
