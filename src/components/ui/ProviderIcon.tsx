@@ -69,6 +69,9 @@ export function ProviderIcon({
   } else if (p.includes("suno")) {
     fallbackIconSrc = "/icons/models/suno.svg";
     title = "Suno AI";
+  } else if (p.includes("microsoft") || p.includes("copilot")) {
+    fallbackIconSrc = "/icon.svg";
+    title = "Microsoft Copilot";
   }
 
   const finalSrc = !imgError && iconUrl ? iconUrl : fallbackIconSrc;

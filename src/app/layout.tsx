@@ -19,7 +19,7 @@ const notoSansThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://goomiru.vercel.app"),
+  metadataBase: new URL("https://goomairu.vercel.app"),
   title: {
     default: "Goomiru — AI Workspace อัจฉริยะ",
     template: `%s | ${BRAND_CONFIG.name}`,
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Goomiru — AI Workspace อัจฉริยะ",
     description: "ผู้ช่วยอัจฉริยะภาษาไทย และ Multi-Model AI Workspace ขับเคลื่อนด้วย DeepSeek",
-    url: "https://goomiru.vercel.app",
+    url: "https://goomairu.vercel.app",
     siteName: "Goomiru AI",
     locale: "th_TH",
     type: "website",

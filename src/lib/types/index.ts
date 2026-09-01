@@ -94,7 +94,8 @@ export type AIProviderName =
   | "Cohere"
   | "Flux"
   | "Sora"
-  | "Suno";
+  | "Suno"
+  | "Microsoft";
 
 export interface Model {
   id: string;
