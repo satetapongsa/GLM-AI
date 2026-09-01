@@ -22,15 +22,17 @@ export class DeepSeekProvider implements AIProvider {
     history: { role: "user" | "assistant" | "system"; content: string }[],
     options: ChatProviderOptions
   ): AsyncGenerator<StreamChunk> {
-    // If no API key configured, use simulated GML stream
+    // If no API key configured, use simulated Goomiru stream
     if (!this.apiKey) {
       yield* this.fallbackProvider.streamMessage(prompt, history, options);
       return;
     }
 
-    // Map internal model IDs to official DeepSeek model IDs
+    const isOpMode = options.isOpMode === true;
+
+    // Use lightweight deepseek-chat for ultra-fast, ultra-low token consumption across all queries
     let modelName = "deepseek-chat";
-    if (options.modelId.includes("r1") || options.modelId.includes("r2") || options.modelId.includes("reasoning")) {
+    if (isOpMode && (options.modelId.includes("r1") || options.modelId.includes("r2") || options.modelId.includes("reasoning"))) {
       modelName = "deepseek-reasoner";
     }
 
@@ -44,39 +46,30 @@ export class DeepSeekProvider implements AIProvider {
       promptLower.includes("เป็นข้อ") ||
       promptLower.includes("หัวข้อ");
 
-    const isOpMode = options.isOpMode === true;
-
     let defaultSystemPrompt = "";
 
     if (isOpMode) {
-      // OP Admin Mode: Unrestricted full intelligence, long and deep answers
-      defaultSystemPrompt = `คุณคือ GML AI ในโหมด [Admin OP Mode: Unrestricted Full Intelligence]
-คุณกำลังสนทนากับผู้ดูแลระบบระดับสูง (Admin)
-- ปลดล็อคขีดจำกัดความยาวทั้งหมด (ไม่ต้องจำกัด 300 คำ)
-- ตอบได้อย่างละเอียด ลึกซึ้ง ครบถ้วน สมบูรณ์แบบที่สุด ไม่กั๊กความรู้
+      // OP Admin Mode: Full Intelligence
+      defaultSystemPrompt = `คุณคือ Goomiru AI ในโหมด [Admin OP Mode: Unrestricted Intelligence]
+คุณกำลังสนทนากับผู้ดูแลระบบ (Admin)
+- ตอบได้อย่างละเอียด ครบถ้วน สมบูรณ์แบบที่สุด
 - มีความเป็นมิตร ฉลาด และสุภาพ
 ${isListRequested ? "- สำหรับคำถามนี้: ผู้ใช้ต้องการคำตอบในรูปแบบรายการ (List/Bullet points) ให้แจกแจงเป็นข้อๆ อย่างชัดเจน" : "- จัดย่อหน้าให้อ่านง่าย มีเหตุผลและโครงสร้างที่สมบูรณ์"}`;
     } else {
-      // Standard Economy Mode: STRICT 300-WORD HARD CAP
-      defaultSystemPrompt = `คุณคือ GML AI ผู้ช่วยอัจฉริยะภาษาไทยที่ตอบคำถามได้ฉลาด กระชับ ตรงประเด็น และเป็นธรรมชาติ
+      // Standard Economy Mode: ULTRA-LOW TOKENS & STRICT COMPACT HARD CAP
+      defaultSystemPrompt = `คุณคือ Goomiru AI ผู้ช่วยอัจฉริยะภาษาไทยที่เน้นความกระชับ ตรงประเด็น ฉลาด และประหยัดโทเคนสูงสุด
 
-กฎเหล็กด้านความยาวและการประหยัดโทเคน (Strict 300-Word Hard Cap):
-- ห้ามตอบยาวเกิน 300 คำในทุกกรณีเด็ดขาด! ไม่ว่าคำถามจะยาก ซับซ้อน หรือขอให้ตอบละเอียดแค่ไหนก็ตาม ให้สรุปใจความสำคัญ ตอบให้ฉลาด กระชับ สั้น และตรงประเด็นทันที
-- ไม่อารัมภบท ไม่เกริ่นนำ ไม่พิมพ์ทวนคำถาม ไม่ร่ายยาวเวิ่นเว้อ
-
-สไตล์และรูปแบบการตอบ:
-1. ความเป็นมิตร: พูดคุยอย่างเป็นธรรมชาติ เป็นกันเอง สุภาพ มีสัมมาคารวะ อบอุ่น ไม่หยาบคาย และไม่แข็งทื่อ
-2. รูปแบบข้อความ:
+กฎเหล็กด้านการประหยัดโทเคน (Strict Low-Token Cap):
+1. ความยาว: ตอบสั้น กระชับ ตรงประเด็นทันที ห้ามตอบยาวเวิ่นเว้อ (ตอบไม่เกิน 100-180 คำ) เพื่อประหยัดโทเคน
+2. ความกระชับ: ไม่อารัมภบท ไม่เกริ่นนำ ไม่ทวนคำถาม ไม่ร่ายยาวทฤษฎี ให้คำตอบที่นำไปใช้ได้ทันที
+3. สไตล์: พูดคุยเป็นกันเอง สุภาพ อบอุ่น เป็นธรรมชาติ
 ${
   isListRequested
-    ? "   - ผู้ใช้ร้องขอแบบรายการ ให้ตอบเป็นข้อๆ (List / Bullet points) สั้น กระชับ ชัดเจน"
-    : "   - ตอบเป็นย่อหน้า (Paragraph) ร้อยเรียงอย่างลื่นไหล สมูท คลีน มีการเว้นวรรคแต่พอดี ห้ามตอบเป็นลิสต์พร่ำเพรื่อ"
+    ? "4. รูปแบบ: ผู้ใช้ขอเป็นข้อๆ ให้ตอบเป็นข้อสั้นๆ ตรงเป้าหมาย"
+    : "4. รูปแบบ: ตอบเป็นย่อหน้าสั้นๆ อ่านง่าย กะทัดรัด"
 }
-3. การส่งมอบ Prompt และ Code:
-   - หากผู้ใช้ขอ Prompt (เช่น คำสั่งสร้างภาพ Midjourney/Flux/SD, คำสั่งวิดีโอ, คำสั่ง AI), โค้ดโปรแกรม, หรือข้อความที่ต้องการให้คัดลอก:
-     * ให้ใส่ "ตัว Prompt หรือ โค้ดภาษาอังกฤษเนื้อๆ" ไว้ข้างใน Code Block เสมอ (\`\`\` หรือ \`\`\`prompt) เพื่อให้ผู้ใช้กดปุ่มคัดลอกได้ทันที
-     * ห้ามเอาข้อความอธิบายภาษาไทยหรือเคล็ดลับไปใส่ใน Code Block เด็ดขาด!
-     * ข้อความอธิบาย เคล็ดลับเพิ่มเติม หรือคำแนะนำ ให้เขียนไว้ "นอก Code Block" เป็นข้อความปกติ พร้อมเน้นตัวหนา (**หัวข้อ**) ให้อ่านง่าย`;
+5. การส่งมอบ Prompt หรือ Code:
+   - หากผู้ใช้ขอ Prompt (เช่น สร้างภาพ, วิดีโอ, AI) หรือโค้ด: ให้ใส่ตัว Prompt/โค้ดสั้นๆ ไว้ใน Code Block (\`\`\`) และมีคำแนะนำสั้นๆ เพียง 1 ประโยคด้านล่างเท่านั้น ห้ามพิมพ์น้ำท่วมทุ่งเด็ดขาด`;
     }
 
     const systemMessageContent = options.systemPrompt || defaultSystemPrompt;
@@ -87,7 +80,8 @@ ${
       { role: "user", content: prompt },
     ];
 
-    const maxTokensLimit = isOpMode ? 4096 : 450;
+    // Hard ceiling on max_tokens to strictly prevent token overrun
+    const maxTokensLimit = isOpMode ? 4096 : 320;
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -100,7 +94,7 @@ ${
           model: modelName,
           messages,
           stream: true,
-          temperature: isOpMode ? (options.temperature ?? 0.7) : 0.6,
+          temperature: isOpMode ? (options.temperature ?? 0.7) : 0.5,
           max_tokens: maxTokensLimit,
         }),
         signal: options.signal,
