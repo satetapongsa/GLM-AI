@@ -22,9 +22,9 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
   };
 
   return (
-    <div className="relative my-4 rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-950 text-zinc-100 font-mono shadow-md text-xs">
+    <div className="relative my-4 rounded-2xl overflow-hidden border border-zinc-700/60 bg-[#161718] text-zinc-100 font-mono shadow-md text-xs">
       {/* Code Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800 select-none">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#1e1f20] border-b border-zinc-800/80 select-none">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
           {language || "code"}
         </span>
@@ -48,9 +48,9 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
         </button>
       </div>
 
-      {/* Code Content */}
-      <div className="p-4 overflow-x-auto">
-        <pre className="font-mono text-xs leading-relaxed text-zinc-200 whitespace-pre">
+      {/* Code Content with Automatic Paragraph Wrapping */}
+      <div className="p-4">
+        <pre className="font-mono text-xs sm:text-[13px] leading-relaxed text-zinc-200 whitespace-pre-wrap break-words [word-break:break-word] select-text">
           <code>{code}</code>
         </pre>
       </div>
