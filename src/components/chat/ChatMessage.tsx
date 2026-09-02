@@ -182,24 +182,31 @@ export function ChatMessage({ message }: ChatMessageProps) {
             }
 
             // Bullet Point Line
-            if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+            if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ")) {
+              const bulletText = trimmed.replace(/^[-*•]\s+/, "");
               return (
-                <div key={lIdx} className="flex items-start gap-2 pl-1 my-0.5">
-                  <span className={cn("mt-1.5 text-[8px]", isUserMsg ? "text-amber-300 font-bold" : "text-blue-400")}>●</span>
-                  <div className="flex-1">{renderInlineText(trimmed.slice(2))}</div>
+                <div key={lIdx} className="flex items-start gap-2 pl-1 my-1">
+                  <span className={cn("mt-1.5 text-[8px] shrink-0 select-none", isUserMsg ? "text-amber-300 font-bold" : "text-slate-400")}>●</span>
+                  <div className="flex-1 leading-relaxed">{renderInlineText(bulletText)}</div>
                 </div>
               );
             }
 
-            // Numbered List Line
-            const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+            // Numbered List Line (Matches "1.", "2.", "3.", etc. or ". ")
+            const numberedMatch = trimmed.match(/^(\d+[\.|)]|\.)\s+(.*)/);
             if (numberedMatch) {
+              const numLabel = numberedMatch[1] === "." ? "•" : numberedMatch[1];
               return (
-                <div key={lIdx} className="flex items-start gap-2 pl-1 my-0.5">
-                  <span className={cn("font-bold min-w-[18px] text-xs pt-0.5 shrink-0", isUserMsg ? "text-amber-300" : "text-blue-400")}>
-                    {numberedMatch[1]}.
+                <div key={lIdx} className="flex items-start gap-2 pl-1 my-1">
+                  <span
+                    className={cn(
+                      "font-bold text-[13px] pt-0.5 shrink-0 select-none min-w-[20px]",
+                      isUserMsg ? "text-amber-300" : "text-sky-400"
+                    )}
+                  >
+                    {numLabel}
                   </span>
-                  <div className="flex-1">{renderInlineText(numberedMatch[2])}</div>
+                  <div className="flex-1 leading-relaxed">{renderInlineText(numberedMatch[2])}</div>
                 </div>
               );
             }
@@ -207,7 +214,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Heading 3
             if (trimmed.startsWith("### ")) {
               return (
-                <h4 key={lIdx} className={cn("text-[14.5px] font-bold mt-2.5 mb-1", isUserMsg ? "text-amber-200" : "text-white")}>
+                <h4 key={lIdx} className={cn("text-[14.5px] font-bold mt-3 mb-1", isUserMsg ? "text-amber-200" : "text-white")}>
                   {renderInlineText(trimmed.slice(4))}
                 </h4>
               );
@@ -216,14 +223,23 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Heading 2
             if (trimmed.startsWith("## ")) {
               return (
-                <h3 key={lIdx} className={cn("text-base font-bold mt-3 mb-1.5", isUserMsg ? "text-amber-200" : "text-white")}>
+                <h3 key={lIdx} className={cn("text-base font-bold mt-3.5 mb-1.5", isUserMsg ? "text-amber-200" : "text-white")}>
                   {renderInlineText(trimmed.slice(3))}
                 </h3>
               );
             }
 
+            // Special Header Line (e.g., "สรุปภาพรวม:")
+            if (trimmed.startsWith("สรุปภาพรวม:") || trimmed.startsWith("สรุป:")) {
+              return (
+                <div key={lIdx} className="mt-3 pt-2 border-t border-white/10">
+                  <p className="leading-relaxed font-normal">{renderInlineText(line)}</p>
+                </div>
+              );
+            }
+
             // Regular paragraph line
-            return <p key={lIdx} className="leading-relaxed">{renderInlineText(line)}</p>;
+            return <p key={lIdx} className="leading-relaxed my-0.5">{renderInlineText(line)}</p>;
           })}
         </div>
       );
