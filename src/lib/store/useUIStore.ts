@@ -7,7 +7,7 @@ interface UIState {
   isCreatePromptModalOpen: boolean;
   isCreateAssistantModalOpen: boolean;
   isUploadModalOpen: boolean;
-  activeTab: "chat" | "prompts" | "saved" | "library" | "learn" | "assistants" | "settings";
+  activeTab: "chat" | "prompts" | "skills" | "saved" | "library" | "learn" | "assistants" | "settings";
   settingsInitialTab: string;
 
   // Actions

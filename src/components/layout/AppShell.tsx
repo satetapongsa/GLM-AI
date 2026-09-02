@@ -15,6 +15,7 @@ import { PromptLibraryView } from "@/components/prompts/PromptLibraryView";
 import { FileLibraryView } from "@/components/files/FileLibraryView";
 import { LearnView } from "@/components/learn/LearnView";
 import { SettingsView } from "@/components/settings/SettingsView";
+import { SkillsView } from "@/components/skills/SkillsView";
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
   const { activeTab } = useUIStore();
@@ -23,6 +24,8 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
     switch (activeTab) {
       case "chat":
         return <ChatView />;
+      case "skills":
+        return <SkillsView />;
       case "prompts":
         return <PromptLibraryView />;
       case "saved":

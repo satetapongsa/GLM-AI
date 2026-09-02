@@ -12,6 +12,7 @@ import {
   Menu,
   SquarePen,
   Search,
+  Sparkles,
   FileText,
   Bookmark,
   Star,
@@ -71,6 +72,13 @@ export function Sidebar() {
       label: "ค้นหาแชท",
       icon: <Search className="h-4 w-4 text-slate-300" />,
       onClick: () => setSearchModalOpen(true),
+    },
+    {
+      id: "skills",
+      label: "สกิล AI (Skills)",
+      icon: <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />,
+      onClick: () => setActiveTab("skills"),
+      active: activeTab === "skills",
     },
     {
       id: "prompts",

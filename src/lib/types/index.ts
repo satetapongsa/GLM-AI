@@ -205,3 +205,20 @@ export interface UserSettings {
   systemPromptPreset: string;
   temperature: number;
 }
+
+export interface AISkill {
+  id: string;
+  title: string;
+  description: string;
+  iconName: string;
+  category: "Horoscope" | "Productivity" | "Writing" | "Coding" | "Creative" | "Analysis";
+  badgeText?: string;
+  badgeColor?: string;
+  gradientBg: string;
+  iconColor: string;
+  systemPrompt: string;
+  isFeatured?: boolean;
+  hasInteractiveForm?: boolean;
+  defaultPrompt?: string;
+}
+
