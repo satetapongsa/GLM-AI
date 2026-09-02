@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย",
+    name: "Goomairu AI",
     short_name: "Goomairu",
-    description: "ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม วางแผนงาน และเขียนโค้ดได้อย่างมีประสิทธิภาพ",
+    description: "Goomairu AI",
     start_url: "/",
     display: "standalone",
     background_color: "#131314",

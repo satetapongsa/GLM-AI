@@ -42,7 +42,7 @@ export const BRAND_CONFIG: BrandConfig = {
   },
   meta: {
     title: "Goomairu AI",
-    description: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม คิดไอเดีย และช่วยทำงานได้ทุกรูปแบบ",
+    description: "Goomairu AI",
     keywords: ["Goomairu", "Goomairu AI", "AI Chat", "Thai AI", "Next.js"],
   },
   defaultUser: {

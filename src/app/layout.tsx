@@ -21,11 +21,10 @@ const notoSansThai = Noto_Sans_Thai({
 export const metadata: Metadata = {
   metadataBase: new URL("https://goomairu.vercel.app"),
   title: {
-    default: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย (AI Chatbot & Assistant)",
+    default: "Goomairu AI",
     template: `%s | ${BRAND_CONFIG.name}`,
   },
-  description:
-    "Goomairu AI (กูไม่รู้เอไอ) — เว็บแอปพลิเคชันผู้ช่วย AI อัจฉริยะภาษาไทย ตอบทุกคำถาม วิเคราะห์ข้อมูล เขียนโค้ด คิดไอเดียสร้างสรรค์ และช่วยทำงานได้อย่างรวดเร็ว แม่นยำ และมีประสิทธิภาพ",
+  description: "Goomairu AI",
   keywords: [
     "Goomairu",
     "Goomairu AI",
@@ -34,14 +33,9 @@ export const metadata: Metadata = {
     "ผู้ช่วย AI ภาษาไทย",
     "AI Chatbot",
     "ปัญญาประดิษฐ์",
-    "DeepSeek",
     "AI เขียนโค้ด",
-    "AI ช่วยคิดงาน",
     "Thai AI Chatbot",
     "Generative AI Thailand",
-    "AI ถามตอบ",
-    "ระบบแชท AI",
-    "Thai AI Assistant",
   ],
   authors: [{ name: "satetapong sanguansuk" }],
   creator: "satetapong sanguansuk",
@@ -58,9 +52,8 @@ export const metadata: Metadata = {
     apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
   },
   openGraph: {
-    title: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย",
-    description:
-      "Goomairu AI (กูไม่รู้เอไอ) — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม วิเคราะห์ข้อมูล เขียนโค้ด และช่วยทำงานได้ทุกรูปแบบ รวดเร็ว ปลอดภัย",
+    title: "Goomairu AI",
+    description: "Goomairu AI",
     url: "https://goomairu.vercel.app",
     siteName: "Goomairu AI",
     locale: "th_TH",
@@ -70,15 +63,14 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย",
+        alt: "Goomairu AI",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Goomairu AI — ผู้ช่วยเอไออัจฉริยะภาษาไทย",
-    description:
-      "Goomairu AI (กูไม่รู้เอไอ) — ผู้ช่วยเอไออัจฉริยะภาษาไทย ตอบทุกคำถาม คิดไอเดีย และช่วยทำงานได้ทุกรูปแบบ",
+    title: "Goomairu AI",
+    description: "Goomairu AI",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -110,8 +102,7 @@ const jsonLd = {
   name: "Goomairu AI",
   alternateName: ["กูไม่รู้เอไอ", "Goomairu"],
   url: "https://goomairu.vercel.app",
-  description:
-    "Goomairu AI (กูไม่รู้เอไอ) — เว็บแอปพลิเคชันผู้ช่วย AI อัจฉริยะภาษาไทย ตอบทุกคำถาม วิเคราะห์ข้อมูล เขียนโค้ด และช่วยทำงานได้อย่างรวดเร็ว",
+  description: "Goomairu AI",
   applicationCategory: "Productivity, Utilities, BusinessApplication",
   operatingSystem: "All",
   browserRequirements: "Requires JavaScript. Requires HTML5.",
