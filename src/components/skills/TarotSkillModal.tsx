@@ -24,26 +24,16 @@ export function TarotSkillModal({ isOpen, onClose }: TarotSkillModalProps) {
   const handleStartFortuneTelling = async () => {
     if (!name.trim() || !question.trim()) return;
 
-    // Draw 5 Tarot cards automatically at submit time
-    const cardsDrawn = draw5TarotCards();
+    const promptMessage = `คำร้องขอทำนายดวงชะตาไพ่ยิปซี 5 ใบ
 
-    const cardDetailsFormatted = cardsDrawn
-      .map((item, idx) => `${idx + 1}. **${item.card.nameTh}** — ${item.positionLabel}`)
-      .join("\n");
+ชื่อ: ${name.trim()}
+วันเกิดและเวลาเกิด: ${birthDate.trim() || "ไม่ระบุ"}
+เรื่องที่อยากรู้: ${question.trim()}
 
-    const promptMessage = `🔮 **เปิดดวงชะตาไพ่ยิปซี 5 ใบ**
-
-👤 **ชื่อ**: ${name.trim()}
-📅 **วันเกิดและเวลาเกิด**: ${birthDate.trim() || "ไม่ระบุ"}
-❓ **เรื่องที่อยากรู้**: ${question.trim()}
-
-🃏 **ไพ่ยิปซี 5 ใบที่สุ่มได้**:
-${cardDetailsFormatted}
-
-รบกวนแม่หมอ Goomairu ทำนายตอบคำถามและภาพรวมของปัญหา สรุปกระชับไม่เกิน 200 คำครับ!`;
+รบกวนสุ่มเปิดไพ่ยิปซี 5 ใบ ทำนายตอบคำถาม พร้อมบอกรายละเอียดไพ่ทั้ง 5 ใบ และสรุปภาพรวมของปัญหา ห้ามใส่อิโมจิเด็ดขาด และสรุปความยาวรวมไม่เกิน 200 คำครับ`;
 
     // Create a new conversation pre-configured for Tarot Fortune Telling
-    createNewConversation(`🔮 ดูดวงไพ่ยิปซี — ${name.trim()}`, "gemini-3.1-flash-lite");
+    createNewConversation(`ดูดวงไพ่ยิปซี - ${name.trim()}`, "gemini-3.1-flash-lite");
 
     onClose();
     setActiveTab("chat");
