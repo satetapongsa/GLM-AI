@@ -76,7 +76,7 @@ export function Sidebar() {
     {
       id: "skills",
       label: "สกิล AI (Skills)",
-      icon: <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />,
+      icon: <Sparkles className="h-4 w-4 text-slate-300" />,
       onClick: () => setActiveTab("skills"),
       active: activeTab === "skills",
     },

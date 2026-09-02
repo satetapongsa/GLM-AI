@@ -30,11 +30,11 @@ export function SkillsView() {
 
   const categories = [
     { id: "all", label: "สกิลทั้งหมด" },
-    { id: "Horoscope", label: "🔮 ดูดวง & โหราศาสตร์" },
-    { id: "Productivity", label: "⚡ เพิ่มประสิทธิภาพงาน" },
-    { id: "Writing", label: "✍️ การเขียน & SEO" },
-    { id: "Coding", label: "💻 เขียนโค้ด & ไอที" },
-    { id: "Analysis", label: "📊 วิเคราะห์การเงิน" },
+    { id: "Horoscope", label: "ดูดวง & โหราศาสตร์" },
+    { id: "Productivity", label: "เพิ่มประสิทธิภาพงาน" },
+    { id: "Writing", label: "การเขียน & SEO" },
+    { id: "Coding", label: "เขียนโค้ด & ไอที" },
+    { id: "Analysis", label: "วิเคราะห์การเงิน" },
   ];
 
   const filteredSkills = BUILT_IN_SKILLS.filter((skill) => {
@@ -48,17 +48,17 @@ export function SkillsView() {
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "Sparkles":
-        return <Sparkles className="h-6 w-6 text-purple-400" />;
+        return <Sparkles className="h-5 w-5 text-slate-300" />;
       case "FileText":
-        return <FileText className="h-6 w-6 text-sky-400" />;
+        return <FileText className="h-5 w-5 text-slate-300" />;
       case "Code":
-        return <Code className="h-6 w-6 text-emerald-400" />;
+        return <Code className="h-5 w-5 text-slate-300" />;
       case "BookOpen":
-        return <BookOpen className="h-6 w-6 text-amber-400" />;
+        return <BookOpen className="h-5 w-5 text-slate-300" />;
       case "TrendingUp":
-        return <TrendingUp className="h-6 w-6 text-rose-400" />;
+        return <TrendingUp className="h-5 w-5 text-slate-300" />;
       default:
-        return <Wand2 className="h-6 w-6 text-purple-400" />;
+        return <Wand2 className="h-5 w-5 text-slate-300" />;
     }
   };
 
@@ -89,21 +89,21 @@ export function SkillsView() {
       {/* Main Container */}
       <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
-                <Sparkles className="h-6 w-6" />
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200">
+                <Sparkles className="h-5 w-5 text-slate-300" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                   <span>คลังสกิล AI อัจฉริยะ</span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30 font-medium">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-medium">
                     AI Special Skills
                   </span>
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                  เลือกใช้ความสามารถพิเศษเฉพาะทางของ AI เพื่อช่วยดูดวง เขียนโค้ด สร้างคอนเทนต์ และวางแผนงาน
+                <p className="text-xs text-slate-400 mt-0.5">
+                  เลือกใช้ความสามารถพิเศษเฉพาะทางของ AI สำหรับทำนายดวงชะตา เขียนโค้ด และวางแผนงาน
                 </p>
               </div>
             </div>
@@ -117,63 +117,41 @@ export function SkillsView() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ค้นหาสกิล AI..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-slate-500 transition-all"
             />
           </div>
         </div>
 
         {/* Featured Hero Skill Card: Tarot 5-Card Reading */}
         {featuredTarotSkill && (
-          <div className="relative rounded-3xl p-6 sm:p-8 overflow-hidden bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-950 border border-purple-500/40 text-white shadow-2xl shadow-purple-950/50 group">
-            <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-purple-600/25 blur-3xl pointer-events-none group-hover:bg-purple-600/35 transition-all" />
-            <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-600/25 blur-3xl pointer-events-none" />
-
+          <div className="relative rounded-2xl p-6 overflow-hidden bg-slate-900 border border-slate-700 text-white shadow-md">
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-2xl">
+              <div className="space-y-2.5 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/25 text-purple-200 border border-purple-400/40 shadow-inner flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-purple-300 animate-pulse" />
-                    <span>สกิล AI ยอดฮิตแนะนำอันดับ 1</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                    เปิดไพ่ 5 ใบ
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700 flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-slate-300" />
+                    <span>สกิลแนะนำ</span>
                   </span>
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-                  🔮 สกิลดูดวงไพ่ยิปซี 5 ใบ (5-Card Tarot AI)
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  สกิลดูดวงไพ่ยิปซี 5 ใบ (5-Card Tarot AI)
                 </h2>
 
-                <p className="text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-                  ถามชื่อ วันเกิด และเรื่องที่อยากรู้ แม่หมอ AI จะทำการสุ่มเปิดไพ่ยิปซี 5 ใบเจาะลึก
-                  <strong className="text-purple-300 font-semibold"> ตัวตน อุปสรรค คำตอบเฉพาะเรื่อง แนวทางแก้ไข และบทสรุปอนาคต</strong> อย่างแม่นยำและละเอียดทรงพลัง
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  สุ่มทำนายดวงชะตา 5 ใบ ตอบคำถามตรงประเด็น สรุปอุปสรรคและภาพรวมของปัญหา (สรุปกระชับไม่เกิน 200 คำ)
                 </p>
-
-                <div className="flex flex-wrap items-center gap-2 text-xs text-purple-200/80 pt-1">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-900/50 border border-purple-500/30">
-                    🃏 เปิดไพ่ 5 ใบพร้อมกัน
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-900/50 border border-purple-500/30">
-                    👤 วิเคราะห์ตามวันเกิด
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-900/50 border border-purple-500/30">
-                    💡 เฉลยคำตอบและทางออก
-                  </span>
-                </div>
               </div>
 
-              <div className="shrink-0 flex flex-col items-start md:items-end gap-3">
+              <div className="shrink-0 flex flex-col items-start md:items-end gap-2">
                 <Button
                   variant="primary"
                   onClick={() => setIsTarotModalOpen(true)}
-                  className="bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:from-purple-400 hover:to-indigo-400 text-white font-bold text-sm sm:text-base px-7 py-3.5 rounded-2xl shadow-xl shadow-purple-600/40 border border-purple-300/40 cursor-pointer hover:scale-105 transition-all flex items-center gap-2"
+                  className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm px-6 py-2.5 rounded-xl border border-slate-600 cursor-pointer flex items-center gap-2"
                 >
-                  <Wand2 className="h-5 w-5 animate-bounce" />
-                  <span>🔮 เปิดไพ่ดูดวงตอนนี้</span>
+                  <Wand2 className="h-4 w-4 text-slate-300" />
+                  <span>เริ่มทำนายดวงชะตา</span>
                 </Button>
-                <span className="text-[11px] text-purple-300/70">
-                  คลิกเพื่อเปิดหน้าสุ่มจับไพ่และระบุคำถาม
-                </span>
               </div>
             </div>
           </div>
@@ -187,9 +165,9 @@ export function SkillsView() {
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
               className={cn(
-                "px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border",
+                "px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer border",
                 selectedCategory === cat.id
-                  ? "bg-purple-600/30 text-purple-200 border-purple-500/60 shadow-md shadow-purple-950/40"
+                  ? "bg-slate-800 text-white border-slate-600"
                   : "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200"
               )}
             >
@@ -203,21 +181,16 @@ export function SkillsView() {
           {filteredSkills.map((skill) => (
             <div
               key={skill.id}
-              className="flex flex-col justify-between p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-purple-500/40 transition-all hover:shadow-xl hover:shadow-purple-950/20 group"
+              className="flex flex-col justify-between p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group"
             >
               <div className="space-y-3">
                 {/* Top Badge & Icon */}
                 <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-2xl bg-slate-800/90 border border-slate-700/80 group-hover:border-purple-500/40 transition-colors">
+                  <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">
                     {getIconComponent(skill.iconName)}
                   </div>
                   {skill.badgeText && (
-                    <span
-                      className={cn(
-                        "px-2.5 py-0.5 rounded-full text-[11px] font-semibold border",
-                        skill.badgeColor || "bg-slate-800 text-slate-300 border-slate-700"
-                      )}
-                    >
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
                       {skill.badgeText}
                     </span>
                   )}
@@ -225,28 +198,28 @@ export function SkillsView() {
 
                 {/* Title & Description */}
                 <div>
-                  <h3 className="text-base font-bold text-white group-hover:text-purple-300 transition-colors">
+                  <h3 className="text-sm font-bold text-white group-hover:text-slate-200 transition-colors">
                     {skill.title}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-3">
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-3">
                     {skill.description}
                   </p>
                 </div>
               </div>
 
               {/* Action Button */}
-              <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between">
+              <div className="pt-3 mt-4 border-t border-slate-800 flex items-center justify-between">
                 <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
-                  <Zap className="h-3 w-3 text-purple-400" />
+                  <Zap className="h-3 w-3 text-slate-400" />
                   <span>พร้อมใช้งาน</span>
                 </span>
 
                 <button
                   type="button"
                   onClick={() => handleActivateSkill(skill)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 transition-all cursor-pointer group-hover:scale-105"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer"
                 >
-                  <span>ใช้งานสกิลนี้</span>
+                  <span>ใช้งานสกิล</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
