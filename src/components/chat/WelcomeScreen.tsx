@@ -74,7 +74,7 @@ export function WelcomeScreen() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icon.svg"
-            alt="Goomiru Logo"
+            alt="Goomairu AI Logo"
             className="w-full h-full object-contain select-none"
           />
         </div>
