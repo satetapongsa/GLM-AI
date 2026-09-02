@@ -171,44 +171,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <div
           key={sIdx}
           className={cn(
-            "space-y-1.5 my-0.5 leading-relaxed text-[13.5px] whitespace-pre-wrap select-text",
+            "space-y-1 my-0.5 leading-relaxed text-[13.5px] select-text",
             isUserMsg ? "text-white" : "text-slate-200"
           )}
         >
           {lines.map((line, lIdx) => {
             const trimmed = line.trim();
             if (!trimmed) {
-              return <div key={lIdx} className="h-2" />;
-            }
-
-            // Bullet Point Line
-            if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ")) {
-              const bulletText = trimmed.replace(/^[-*•]\s+/, "");
-              return (
-                <div key={lIdx} className="flex items-start gap-2 pl-1 my-1">
-                  <span className={cn("mt-1.5 text-[8px] shrink-0 select-none", isUserMsg ? "text-amber-300 font-bold" : "text-slate-400")}>●</span>
-                  <div className="flex-1 leading-relaxed">{renderInlineText(bulletText)}</div>
-                </div>
-              );
-            }
-
-            // Numbered List Line (Matches "1.", "2.", "3.", etc. or ". ")
-            const numberedMatch = trimmed.match(/^(\d+[\.|)]|\.)\s+(.*)/);
-            if (numberedMatch) {
-              const numLabel = numberedMatch[1] === "." ? "•" : numberedMatch[1];
-              return (
-                <div key={lIdx} className="flex items-start gap-2 pl-1 my-1">
-                  <span
-                    className={cn(
-                      "font-bold text-[13px] pt-0.5 shrink-0 select-none min-w-[20px]",
-                      isUserMsg ? "text-amber-300" : "text-sky-400"
-                    )}
-                  >
-                    {numLabel}
-                  </span>
-                  <div className="flex-1 leading-relaxed">{renderInlineText(numberedMatch[2])}</div>
-                </div>
-              );
+              return <div key={lIdx} className="h-1.5" />;
             }
 
             // Heading 3
@@ -229,17 +199,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
               );
             }
 
-            // Special Header Line (e.g., "สรุปภาพรวม:")
+            // Special Section Divider (e.g., "สรุปภาพรวม:")
             if (trimmed.startsWith("สรุปภาพรวม:") || trimmed.startsWith("สรุป:")) {
               return (
                 <div key={lIdx} className="mt-3 pt-2 border-t border-white/10">
-                  <p className="leading-relaxed font-normal">{renderInlineText(line)}</p>
+                  <p className="leading-relaxed">{renderInlineText(line)}</p>
                 </div>
               );
             }
 
-            // Regular paragraph line
-            return <p key={lIdx} className="leading-relaxed my-0.5">{renderInlineText(line)}</p>;
+            // Regular paragraph/list line (renders text naturally without custom badge bugs)
+            return (
+              <p key={lIdx} className="leading-relaxed my-0.5">
+                {renderInlineText(line)}
+              </p>
+            );
           })}
         </div>
       );
