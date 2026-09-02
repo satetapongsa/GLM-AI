@@ -7,6 +7,7 @@ import { MessageActions } from "./MessageActions";
 import { ProviderIcon } from "@/components/ui/ProviderIcon";
 import { AVAILABLE_MODELS } from "@/lib/config/models";
 import { formatFileSize, formatRelativeTime } from "@/lib/utils/formatters";
+import { cn } from "@/lib/utils/cn";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useTokenStore } from "@/lib/store/useTokenStore";
 import {
@@ -148,7 +149,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   };
 
   // Helper to render markdown content
-  const renderFormattedContent = (content: string) => {
+  const renderFormattedContent = (content: string, isUserMsg = false) => {
     if (!content) return null;
 
     const sections = parseContentWithCodeBlocks(content);
@@ -167,18 +168,24 @@ export function ChatMessage({ message }: ChatMessageProps) {
       // Format pure text
       const lines = section.content.split("\n");
       return (
-        <div key={sIdx} className="space-y-1.5 my-1 text-slate-200 leading-relaxed text-[13.5px]">
+        <div
+          key={sIdx}
+          className={cn(
+            "space-y-1.5 my-0.5 leading-relaxed text-[13.5px] whitespace-pre-wrap select-text",
+            isUserMsg ? "text-white" : "text-slate-200"
+          )}
+        >
           {lines.map((line, lIdx) => {
             const trimmed = line.trim();
             if (!trimmed) {
-              return <div key={lIdx} className="h-1.5" />;
+              return <div key={lIdx} className="h-2" />;
             }
 
             // Bullet Point Line
             if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
               return (
-                <div key={lIdx} className="flex items-start gap-2 pl-2">
-                  <span className="text-blue-400 mt-1.5 text-[8px]">●</span>
+                <div key={lIdx} className="flex items-start gap-2 pl-1 my-0.5">
+                  <span className={cn("mt-1.5 text-[8px]", isUserMsg ? "text-amber-300 font-bold" : "text-blue-400")}>●</span>
                   <div className="flex-1">{renderInlineText(trimmed.slice(2))}</div>
                 </div>
               );
@@ -188,8 +195,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
             const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
             if (numberedMatch) {
               return (
-                <div key={lIdx} className="flex items-start gap-2 pl-2">
-                  <span className="font-semibold text-blue-400 min-w-[16px] text-xs">
+                <div key={lIdx} className="flex items-start gap-2 pl-1 my-0.5">
+                  <span className={cn("font-bold min-w-[18px] text-xs pt-0.5 shrink-0", isUserMsg ? "text-amber-300" : "text-blue-400")}>
                     {numberedMatch[1]}.
                   </span>
                   <div className="flex-1">{renderInlineText(numberedMatch[2])}</div>
@@ -200,7 +207,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Heading 3
             if (trimmed.startsWith("### ")) {
               return (
-                <h4 key={lIdx} className="text-[14.5px] font-bold text-white mt-3 mb-1">
+                <h4 key={lIdx} className={cn("text-[14.5px] font-bold mt-2.5 mb-1", isUserMsg ? "text-amber-200" : "text-white")}>
                   {renderInlineText(trimmed.slice(4))}
                 </h4>
               );
@@ -209,14 +216,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Heading 2
             if (trimmed.startsWith("## ")) {
               return (
-                <h3 key={lIdx} className="text-base font-bold text-white mt-3.5 mb-1.5">
+                <h3 key={lIdx} className={cn("text-base font-bold mt-3 mb-1.5", isUserMsg ? "text-amber-200" : "text-white")}>
                   {renderInlineText(trimmed.slice(3))}
                 </h3>
               );
             }
 
             // Regular paragraph line
-            return <p key={lIdx}>{renderInlineText(line)}</p>;
+            return <p key={lIdx} className="leading-relaxed">{renderInlineText(line)}</p>;
           })}
         </div>
       );
@@ -288,8 +295,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 </div>
               </div>
             ) : (
-              <div className="px-4 py-2.5 rounded-[20px] rounded-tr-sm bg-[#0b57d0] text-white text-xs sm:text-sm font-normal leading-relaxed shadow-xs">
-                {message.content}
+              <div className="px-4 py-3 rounded-[20px] rounded-tr-sm bg-[#0b57d0] text-white text-xs sm:text-sm font-normal leading-relaxed shadow-xs overflow-hidden">
+                {renderFormattedContent(message.content, true)}
               </div>
             )}
 

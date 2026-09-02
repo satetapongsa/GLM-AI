@@ -46,14 +46,19 @@ export function TarotSkillModal({ isOpen, onClose }: TarotSkillModalProps) {
     }
 
     const cardDetailsFormatted = cardsToUse
-      .map((item, idx) => `  ${idx + 1}. [${item.card.nameTh}] - ${item.positionLabel} (ความหมาย: ${item.card.keywords.join(", ")})`)
-      .join("\n");
+      .map(
+        (item, idx) =>
+          `${idx + 1}. **${item.card.nameTh}** — ${item.positionLabel}\n   *(ความหมาย: ${item.card.keywords.join(", ")})*`
+      )
+      .join("\n\n");
 
-    const promptMessage = `🔮 ขอเปิดดวงชะตาไพ่ยิปซี 5 ใบ สำหรับคุณ ${name.trim()}
-📅 วัน/เดือน/ปีเกิด: ${birthDate.trim() || "ไม่ระบุ"}
-❓ เรื่องที่อยากรู้/คำถามเปิดดวง: ${question.trim()}
+    const promptMessage = `🔮 **คำร้องขอเปิดดวงชะตาไพ่ยิปซี 5 ใบ**
 
-🃏 ไพ่ยิปซี 5 ใบที่สุ่มได้จากสำรับ:
+👤 **ชื่อผู้ดูดวง**: ${name.trim()}
+📅 **วัน/เดือน/ปีเกิด**: ${birthDate.trim() || "ไม่ระบุ"}
+❓ **เรื่องที่อยากรู้/คำถามเปิดดวง**: ${question.trim()}
+
+🃏 **ไพ่ยิปซี 5 ใบที่สุ่มได้จากสำรับ**:
 ${cardDetailsFormatted}
 
 รบกวนแม่หมอ Goomairu ทำนายดวงชะตาเรื่องนี้ให้อย่างเจาะลึก แม่นยำ และให้แนวทางแก้ไขเชิงบวกครับ!`;
