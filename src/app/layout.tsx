@@ -84,6 +84,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "google566fe2698b8a340c",
+  },
   other: {
     "color-scheme": "dark",
   },
