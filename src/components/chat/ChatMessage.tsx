@@ -148,6 +148,81 @@ export function ChatMessage({ message }: ChatMessageProps) {
     setIsEditing(false);
   };
 
+interface TableBlock {
+  type: "table";
+  headers: string[];
+  rows: string[][];
+}
+
+interface LineBlock {
+  type: "line";
+  line: string;
+}
+
+type TextSectionBlock = TableBlock | LineBlock;
+
+function parseMarkdownTableRows(tableLines: string[]): TableBlock | null {
+  if (tableLines.length < 2) return null;
+
+  // Filter out markdown separator lines like |---|---| or | :--- | ---: |
+  const contentLines = tableLines.filter((l) => {
+    const stripped = l.replace(/[\s|:\-]/g, "");
+    return stripped.length > 0;
+  });
+
+  if (contentLines.length === 0) return null;
+
+  const parseRow = (rowStr: string) => {
+    let s = rowStr.trim();
+    if (s.startsWith("|")) s = s.slice(1);
+    if (s.endsWith("|")) s = s.slice(0, -1);
+    return s.split("|").map((cell) => cell.trim());
+  };
+
+  const headers = parseRow(contentLines[0]);
+  const rows = contentLines.slice(1).map(parseRow);
+
+  return { type: "table", headers, rows };
+}
+
+function parseTextSectionBlocks(content: string): TextSectionBlock[] {
+  const lines = content.split("\n");
+  const blocks: TextSectionBlock[] = [];
+  let accumTableLines: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const isTableRow = trimmed.startsWith("|") || (trimmed.includes("|") && (trimmed.match(/\|/g) || []).length >= 2);
+
+    if (isTableRow) {
+      accumTableLines.push(trimmed);
+    } else {
+      if (accumTableLines.length > 0) {
+        const parsedTbl = parseMarkdownTableRows(accumTableLines);
+        if (parsedTbl) {
+          blocks.push(parsedTbl);
+        } else {
+          accumTableLines.forEach((tl) => blocks.push({ type: "line", line: tl }));
+        }
+        accumTableLines = [];
+      }
+      blocks.push({ type: "line", line });
+    }
+  }
+
+  if (accumTableLines.length > 0) {
+    const parsedTbl = parseMarkdownTableRows(accumTableLines);
+    if (parsedTbl) {
+      blocks.push(parsedTbl);
+    } else {
+      accumTableLines.forEach((tl) => blocks.push({ type: "line", line: tl }));
+    }
+  }
+
+  return blocks;
+}
+
   // Helper to render markdown content
   const renderFormattedContent = (content: string, isUserMsg = false) => {
     if (!content) return null;
@@ -165,8 +240,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         );
       }
 
-      // Format pure text
-      const lines = section.content.split("\n");
+      const textBlocks = parseTextSectionBlocks(section.content);
+
       return (
         <div
           key={sIdx}
@@ -175,16 +250,61 @@ export function ChatMessage({ message }: ChatMessageProps) {
             isUserMsg ? "text-white" : "text-slate-200"
           )}
         >
-          {lines.map((line, lIdx) => {
+          {textBlocks.map((block, bIdx) => {
+            if (block.type === "table") {
+              return (
+                <div
+                  key={bIdx}
+                  className="my-3 overflow-x-auto rounded-xl border border-slate-700/80 bg-[#18191a] shadow-sm"
+                >
+                  <table className="w-full text-left text-xs sm:text-sm text-slate-200 border-collapse">
+                    <thead className="bg-[#242526] text-slate-100 font-semibold border-b border-slate-700/80">
+                      <tr>
+                        {block.headers.map((h, hIdx) => (
+                          <th
+                            key={hIdx}
+                            className="px-3.5 py-2.5 border-r last:border-r-0 border-slate-700/50"
+                          >
+                            {renderInlineText(h)}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/50">
+                      {block.rows.map((row, rIdx) => (
+                        <tr
+                          key={rIdx}
+                          className={cn(
+                            "hover:bg-slate-800/40 transition-colors",
+                            rIdx % 2 === 1 ? "bg-white/[0.02]" : ""
+                          )}
+                        >
+                          {row.map((cell, cIdx) => (
+                            <td
+                              key={cIdx}
+                              className="px-3.5 py-2 border-r last:border-r-0 border-slate-700/50 font-mono text-[13px]"
+                            >
+                              {renderInlineText(cell)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            }
+
+            const line = block.line;
             const trimmed = line.trim();
             if (!trimmed) {
-              return <div key={lIdx} className="h-1.5" />;
+              return <div key={bIdx} className="h-1.5" />;
             }
 
             // Heading 3
             if (trimmed.startsWith("### ")) {
               return (
-                <h4 key={lIdx} className={cn("text-[14.5px] font-bold mt-3 mb-1", isUserMsg ? "text-amber-200" : "text-white")}>
+                <h4 key={bIdx} className={cn("text-[14.5px] font-bold mt-3 mb-1", isUserMsg ? "text-amber-200" : "text-white")}>
                   {renderInlineText(trimmed.slice(4))}
                 </h4>
               );
@@ -193,7 +313,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Heading 2
             if (trimmed.startsWith("## ")) {
               return (
-                <h3 key={lIdx} className={cn("text-base font-bold mt-3.5 mb-1.5", isUserMsg ? "text-amber-200" : "text-white")}>
+                <h3 key={bIdx} className={cn("text-base font-bold mt-3.5 mb-1.5", isUserMsg ? "text-amber-200" : "text-white")}>
                   {renderInlineText(trimmed.slice(3))}
                 </h3>
               );
@@ -202,15 +322,15 @@ export function ChatMessage({ message }: ChatMessageProps) {
             // Special Section Divider (e.g., "สรุปภาพรวม:")
             if (trimmed.startsWith("สรุปภาพรวม:") || trimmed.startsWith("สรุป:")) {
               return (
-                <div key={lIdx} className="mt-3 pt-2 border-t border-white/10">
+                <div key={bIdx} className="mt-3 pt-2 border-t border-white/10">
                   <p className="leading-relaxed">{renderInlineText(line)}</p>
                 </div>
               );
             }
 
-            // Regular paragraph/list line (renders text naturally without custom badge bugs)
+            // Regular paragraph/list line
             return (
-              <p key={lIdx} className="leading-relaxed my-0.5">
+              <p key={bIdx} className="leading-relaxed my-0.5">
                 {renderInlineText(line)}
               </p>
             );

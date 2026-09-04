@@ -39,41 +39,6 @@ export function MessageActions({ message }: MessageActionsProps) {
     alert("คัดลอกข้อความสำหรับแชร์เรียบร้อยแล้ว");
   };
 
-  const handleExportPDF = () => {
-    const { exportMessageToPDF } = require("@/lib/utils/accountingExporter");
-    exportMessageToPDF(message.content, `Financial_Report_${Date.now()}.pdf`);
-  };
-
-  const handleExportExcel = () => {
-    const { exportMessageToExcel } = require("@/lib/utils/accountingExporter");
-    exportMessageToExcel(message.content, `Financial_Report_${Date.now()}.xlsx`);
-  };
-
-  const activeConv = useChatStore((s) => s.conversations.find((c) => c.id === s.activeConversationId));
-  const isAccountingChat = activeConv?.title?.includes("บัญชี") || activeConv?.title?.includes("การเงิน");
-
-  const activeConversationId = useChatStore((s) => s.activeConversationId);
-  const conversationMessages = useChatStore((s) => (activeConversationId ? s.messages[activeConversationId] || [] : []));
-  const hasFileInChat = conversationMessages.some((m) => m.attachments && m.attachments.length > 0);
-
-  const isGreeting = message.content.includes("สวัสดีครับ ผมคือผู้ช่วยบัญชีมืออาชีพ");
-  const hasFinancialContent =
-    message.content.includes("บาท") ||
-    message.content.includes("กำไร") ||
-    message.content.includes("รายรับ") ||
-    message.content.includes("รายจ่าย") ||
-    message.content.includes("รายรวม") ||
-    message.content.includes("ต้นทุน") ||
-    message.content.includes("PDF") ||
-    message.content.includes("Excel") ||
-    message.content.includes("|");
-
-  const showExportButtons =
-    message.role === "assistant" &&
-    !isStreaming &&
-    !isGreeting &&
-    (isAccountingChat || hasFileInChat || hasFinancialContent);
-
   return (
     <div className="flex flex-wrap items-center gap-1 mt-2 text-[hsl(var(--muted-foreground))]">
       {/* Copy */}
@@ -145,29 +110,6 @@ export function MessageActions({ message }: MessageActionsProps) {
       >
         <Share2 className="h-3.5 w-3.5" />
       </button>
-
-      {/* PDF & Excel Export Buttons ONLY appear after user attaches file and AI calculates accounting data */}
-      {showExportButtons && (
-        <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-white/10">
-          <button
-            type="button"
-            onClick={handleExportPDF}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[11px] font-medium border border-rose-500/20 transition-colors cursor-pointer"
-            title="ดาวน์โหลดรายงาน PDF"
-          >
-            <span>ส่งออก PDF</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleExportExcel}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-500/20 transition-colors cursor-pointer"
-            title="ดาวน์โหลดไฟล์ Excel (.xlsx)"
-          >
-            <span>ส่งออก Excel</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }
