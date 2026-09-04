@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { BUILT_IN_SKILLS } from "@/lib/config/skills";
 import { AISkill } from "@/lib/types";
 import { TarotSkillModal } from "./TarotSkillModal";
-import { AccountingSkillModal } from "./AccountingSkillModal";
 import { Button } from "@/components/ui/Button";
 import { useChatStore } from "@/lib/store/useChatStore";
 import { useUIStore } from "@/lib/store/useUIStore";
@@ -12,8 +11,6 @@ import {
   Sparkles,
   Search,
   Wand2,
-  FileText,
-  FileSpreadsheet,
   ArrowRight,
   Zap,
 } from "lucide-react";
@@ -21,53 +18,21 @@ import { cn } from "@/lib/utils/cn";
 
 export function SkillsView() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isTarotModalOpen, setIsTarotModalOpen] = useState(false);
-  const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
 
   const { createNewConversation, sendMessage } = useChatStore();
   const { setActiveTab } = useUIStore();
 
-  const categories = [
-    { id: "all", label: "สกิลทั้งหมด" },
-    { id: "Horoscope", label: "ดูดวง & โหราศาสตร์" },
-    { id: "Accounting", label: "บัญชี & รายงานการเงิน" },
-  ];
-
   const filteredSkills = BUILT_IN_SKILLS.filter((skill) => {
-    const matchesCategory = selectedCategory === "all" || skill.category === selectedCategory;
-    const matchesSearch =
+    return (
       skill.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      skill.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+      skill.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
-
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case "Sparkles":
-        return <Sparkles className="h-5 w-5 text-slate-300" />;
-      case "FileSpreadsheet":
-        return <FileSpreadsheet className="h-5 w-5 text-emerald-400" />;
-      case "FileText":
-        return <FileText className="h-5 w-5 text-slate-300" />;
-      default:
-        return <Wand2 className="h-5 w-5 text-slate-300" />;
-    }
-  };
 
   const handleActivateSkill = (skill: AISkill) => {
     if (skill.id === "skill-tarot-5cards") {
       setIsTarotModalOpen(true);
-      return;
-    }
-    if (skill.id === "skill-accounting") {
-      createNewConversation("📊 ผู้ช่วยบัญชีและทำรายงานการเงิน", "gemini-3.1-flash-lite");
-      setActiveTab("chat");
-      setTimeout(() => {
-        sendMessage(
-          "สวัสดีครับ ผมคือผู้ช่วยบัญชีมืออาชีพ (Accounting & Financial Specialist)\n\nคุณสามารถแนบไฟล์ Excel (.xlsx, .xls), CSV หรือ TXT บัญชีรายรับ-รายจ่ายเข้ามาในช่องแชท พร้อมพิมพ์สั่งให้คำนวณ สรุปงบกำไรขาดทุน คำนวณภาษี หรือส่งออกเป็นรายงาน PDF / Excel ได้เลยครับ!"
-        );
-      }, 200);
       return;
     }
 
@@ -81,14 +46,10 @@ export function SkillsView() {
     }
   };
 
-  const featuredTarotSkill = BUILT_IN_SKILLS.find((s) => s.id === "skill-tarot-5cards");
-  const featuredAccountingSkill = BUILT_IN_SKILLS.find((s) => s.id === "skill-accounting");
-
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#131314] text-[#f1f5f9]">
-      {/* Skill Modals */}
+      {/* Skill Modal */}
       <TarotSkillModal isOpen={isTarotModalOpen} onClose={() => setIsTarotModalOpen(false)} />
-      <AccountingSkillModal isOpen={isAccountingModalOpen} onClose={() => setIsAccountingModalOpen(false)} />
 
       {/* Main Container */}
       <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -101,13 +62,13 @@ export function SkillsView() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                  <span>คลังสกิล AI อัจฉริยะ</span>
+                  <span>สกิลดูดวงไพ่ยิปซีอัจฉริยะ</span>
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-medium">
-                    AI Special Skills
+                    Horoscope AI Specialist
                   </span>
                 </h1>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  เลือกใช้ความสามารถพิเศษเฉพาะทางของ AI สำหรับดูดวง และวิเคราะห์ทำบัญชีการเงิน (ส่งออก PDF & Excel)
+                  ศาสตร์ทำนายดวงชะตาขั้นสูงด้วยไพ่ยิปซี 5 ใบ หยั่งรู้ดวงชะตา วิเคราะห์ตัวตน อุปสรรค และอนาคตอย่างแม่นยำลึกซึ้ง
                 </p>
               </div>
             </div>
@@ -120,29 +81,10 @@ export function SkillsView() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ค้นหาสกิล AI..."
+              placeholder="ค้นหาสกิล..."
               className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-slate-500 transition-all"
             />
           </div>
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer border",
-                selectedCategory === cat.id
-                  ? "bg-slate-800 text-white border-slate-600"
-                  : "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200"
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
         </div>
 
         {/* Skills Cards Grid */}
@@ -156,7 +98,7 @@ export function SkillsView() {
                 {/* Top Badge & Icon */}
                 <div className="flex items-center justify-between">
                   <div className="p-3 rounded-xl bg-slate-800 border border-slate-700">
-                    {getIconComponent(skill.iconName)}
+                    <Sparkles className="h-5 w-5 text-slate-300" />
                   </div>
                   {skill.badgeText && (
                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
@@ -180,7 +122,7 @@ export function SkillsView() {
               <div className="pt-4 mt-5 border-t border-slate-800 flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
                   <Zap className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>เปิดใช้งานทันที</span>
+                  <span>เปิดใช้งานทำนายดวงทันที</span>
                 </span>
 
                 <Button
@@ -188,7 +130,7 @@ export function SkillsView() {
                   onClick={() => handleActivateSkill(skill)}
                   className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-xl border border-slate-600 cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>เริ่มใช้งานสกิล</span>
+                  <span>เริ่มทำนายดวง</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
