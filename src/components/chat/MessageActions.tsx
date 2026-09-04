@@ -57,6 +57,20 @@ export function MessageActions({ message }: MessageActionsProps) {
     exportToExcel(`Financial_Report_${Date.now()}`, headers, rows);
   };
 
+  const activeConversationId = useChatStore((s) => s.activeConversationId);
+  const conversationMessages = useChatStore((s) => (activeConversationId ? s.messages[activeConversationId] || [] : []));
+
+  // Export buttons ONLY appear after a file is attached & AI calculates the financial data
+  const hasFileInChat = conversationMessages.some((m) => m.attachments && m.attachments.length > 0);
+  const isGreeting = message.content.includes("สวัสดีครับ ผมคือผู้ช่วยบัญชี") || message.content.includes("สวัสดีครับ");
+  const hasCalculatedData = (message.content.includes("|") && message.content.split("|").length >= 4) || message.content.includes("งบกำไรขาดทุน") || message.content.includes("รวมรายรับ");
+
+  const showExportButtons =
+    message.role === "assistant" &&
+    !isStreaming &&
+    !isGreeting &&
+    (hasFileInChat || hasCalculatedData);
+
   return (
     <div className="flex flex-wrap items-center gap-1 mt-2 text-[hsl(var(--muted-foreground))]">
       {/* Copy */}
@@ -129,8 +143,8 @@ export function MessageActions({ message }: MessageActionsProps) {
         <Share2 className="h-3.5 w-3.5" />
       </button>
 
-      {/* PDF & Excel Export Buttons for Assistant Answers */}
-      {message.role === "assistant" && message.content && (
+      {/* PDF & Excel Export Buttons ONLY appear after user attaches file and AI calculates accounting data */}
+      {showExportButtons && (
         <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-white/10">
           <button
             type="button"
