@@ -8,13 +8,13 @@ import { useTokenStore } from "@/lib/store/useTokenStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import { BRAND_CONFIG } from "@/lib/config/brand";
 import { AttachmentPreview } from "./AttachmentPreview";
-import { AttachmentMenu } from "./AttachmentMenu";
 import { ProviderIcon } from "@/components/ui/ProviderIcon";
 import { AVAILABLE_MODELS } from "@/lib/config/models";
 import { cn } from "@/lib/utils/cn";
+import { Attachment } from "@/lib/types";
 import {
   Send,
-  Plus,
+  Image as ImageIcon,
   Square,
   ChevronDown,
   Coins,
@@ -27,6 +27,7 @@ export function ChatComposer() {
     composerText,
     setComposerText,
     composerAttachments,
+    addComposerAttachment,
     removeComposerAttachment,
     sendMessage,
     stopGeneration,
@@ -37,11 +38,11 @@ export function ChatComposer() {
   const { getSelectedModel, openModelModal } = useModelStore();
   const { settings } = useSettingsStore();
   const { usedTokensToday, dailyLimit, getRemainingTokens } = useTokenStore();
-  const { isAuthenticated, openAuthModal } = useAuthStore();
+  const { isAuthenticated, openAuthModal, user } = useAuthStore();
 
   const [mounted, setMounted] = useState(false);
-  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -97,6 +98,48 @@ export function ChatComposer() {
     }
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type.startsWith("image/") && !file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) continue;
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Data = reader.result as string;
+          if (base64Data) {
+            fetch("/api/media/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                fileName: file.name,
+                fileType: file.type || "image/jpeg",
+                fileSize: file.size,
+                mediaData: base64Data,
+                userEmail: user?.email || "guest_user",
+              }),
+            }).catch(() => {});
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch {}
+
+      const newAttachment: Attachment = {
+        id: `att-img-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 5)}`,
+        name: file.name,
+        type: file.type || "image/jpeg",
+        size: file.size,
+        status: "complete",
+        previewUrl: URL.createObjectURL(file),
+      };
+      addComposerAttachment(newAttachment);
+    }
+    e.target.value = "";
+  };
+
   const hasContent = composerText.trim().length > 0 || composerAttachments.length > 0;
 
   return (
@@ -128,32 +171,31 @@ export function ChatComposer() {
         {/* Bottom Actions Row */}
         <div className="flex items-center justify-between gap-1.5 mt-2 pt-1">
           <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-            {/* Plus Attachment Button */}
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isUserAuth) {
-                    openAuthModal("login");
-                  } else {
-                    setIsAttachmentMenuOpen(!isAttachmentMenuOpen);
-                  }
-                }}
-                aria-label="แนบไฟล์หรือรูปภาพ"
-                className={cn(
-                  "h-7 w-7 rounded-full bg-[#282a2c] text-slate-300 flex items-center justify-center transition-colors cursor-pointer hover:bg-[#333538]"
-                )}
-              >
-                <Plus className={cn("h-3.5 w-3.5 transition-transform duration-200", isAttachmentMenuOpen && "rotate-45")} />
-              </button>
+            {/* Direct Image File Input & Photo Gallery Icon Button */}
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleImageChange}
+            />
 
-              {isUserAuth && (
-                <AttachmentMenu
-                  isOpen={isAttachmentMenuOpen}
-                  onClose={() => setIsAttachmentMenuOpen(false)}
-                />
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (!isUserAuth) {
+                  openAuthModal("login");
+                } else {
+                  imageInputRef.current?.click();
+                }
+              }}
+              aria-label="เลือกรูปภาพ"
+              className="h-7 w-7 rounded-full bg-[#282a2c] text-slate-300 flex items-center justify-center transition-colors cursor-pointer hover:bg-[#333538] hover:text-emerald-400 shrink-0"
+              title="เลือกรูปภาพ"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+            </button>
 
             {/* Model Pill Button [ ✦ DeepSeek V3 (Chat) ▾ ] */}
             <button
@@ -223,9 +265,9 @@ export function ChatComposer() {
                 className={cn(
                   "h-7.5 w-7.5 rounded-full flex items-center justify-center transition-all cursor-pointer",
                   isUserAuth && hasContent
-                    ? "bg-[#0b57d0] text-white hover:bg-[#0842a0] active:scale-95 shadow-xs"
+                    ? "bg-[#0b57d0] text-[#ffffff] hover:bg-[#0842a0] active:scale-95 shadow-xs"
                     : !isUserAuth
-                    ? "bg-[#0b57d0] text-white hover:bg-[#0842a0] active:scale-95 shadow-xs"
+                    ? "bg-[#0b57d0] text-[#ffffff] hover:bg-[#0842a0] active:scale-95 shadow-xs"
                     : "bg-[#282a2c] text-slate-500 cursor-not-allowed"
                 )}
                 title={isUserAuth ? "ส่งข้อความ (Enter)" : "เข้าสู่ระบบเพื่อส่งข้อความ"}
@@ -239,3 +281,4 @@ export function ChatComposer() {
     </div>
   );
 }
+
