@@ -211,7 +211,7 @@ export interface AISkill {
   title: string;
   description: string;
   iconName: string;
-  category: "Horoscope" | "Productivity" | "Writing" | "Coding" | "Creative" | "Analysis";
+  category: "Horoscope" | "Productivity" | "Writing" | "Coding" | "Creative" | "Analysis" | "Accounting";
   badgeText?: string;
   badgeColor?: string;
   gradientBg: string;
