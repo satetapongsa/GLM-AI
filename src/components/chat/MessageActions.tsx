@@ -57,19 +57,30 @@ export function MessageActions({ message }: MessageActionsProps) {
     exportToExcel(`Financial_Report_${Date.now()}`, headers, rows);
   };
 
+  const activeConv = useChatStore((s) => s.conversations.find((c) => c.id === s.activeConversationId));
+  const isAccountingChat = activeConv?.title?.includes("บัญชี") || activeConv?.title?.includes("การเงิน");
+
   const activeConversationId = useChatStore((s) => s.activeConversationId);
   const conversationMessages = useChatStore((s) => (activeConversationId ? s.messages[activeConversationId] || [] : []));
-
-  // Export buttons ONLY appear after a file is attached & AI calculates the financial data
   const hasFileInChat = conversationMessages.some((m) => m.attachments && m.attachments.length > 0);
-  const isGreeting = message.content.includes("สวัสดีครับ ผมคือผู้ช่วยบัญชี") || message.content.includes("สวัสดีครับ");
-  const hasCalculatedData = (message.content.includes("|") && message.content.split("|").length >= 4) || message.content.includes("งบกำไรขาดทุน") || message.content.includes("รวมรายรับ");
+
+  const isGreeting = message.content.includes("สวัสดีครับ ผมคือผู้ช่วยบัญชีมืออาชีพ");
+  const hasFinancialContent =
+    message.content.includes("บาท") ||
+    message.content.includes("กำไร") ||
+    message.content.includes("รายรับ") ||
+    message.content.includes("รายจ่าย") ||
+    message.content.includes("รายรวม") ||
+    message.content.includes("ต้นทุน") ||
+    message.content.includes("PDF") ||
+    message.content.includes("Excel") ||
+    message.content.includes("|");
 
   const showExportButtons =
     message.role === "assistant" &&
     !isStreaming &&
     !isGreeting &&
-    (hasFileInChat || hasCalculatedData);
+    (isAccountingChat || hasFileInChat || hasFinancialContent);
 
   return (
     <div className="flex flex-wrap items-center gap-1 mt-2 text-[hsl(var(--muted-foreground))]">

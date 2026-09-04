@@ -234,6 +234,8 @@ export function exportToPDF(
  * Helper to extract table headers and rows from Markdown AI response
  */
 export function extractTableFromMarkdown(markdownText: string): { headers: string[]; rows: (string | number)[][] } {
+  const cleanStr = (s: string) => s.replace(/\*\*/g, "").replace(/`/g, "").trim();
+
   const lines = markdownText.split("\n");
   const tableLines: string[] = [];
 
@@ -244,7 +246,7 @@ export function extractTableFromMarkdown(markdownText: string): { headers: strin
   }
 
   if (tableLines.length >= 2) {
-    const parseRow = (l: string) => l.split("|").slice(1, -1).map((c) => c.trim());
+    const parseRow = (l: string) => l.split("|").slice(1, -1).map(cleanStr);
     const headers = parseRow(tableLines[0]);
 
     // Filter out separator row (e.g. |---|---|)
@@ -254,18 +256,22 @@ export function extractTableFromMarkdown(markdownText: string): { headers: strin
     return { headers, rows };
   }
 
-  // Fallback: extract list items or key-value pairs
+  // Fallback: extract list items or key-value pairs (e.g. - รายรวม: 3,500,000 บาท)
   const rows: (string | number)[][] = [];
   lines.forEach((l) => {
-    const trimmed = l.trim();
-    if (trimmed.includes(":") || trimmed.includes("-") || trimmed.match(/^\d+\./)) {
-      const parts = trimmed.replace(/^[\d+.\-*•]\s*/, "").split(/[:\-]/);
-      if (parts.length >= 2) {
-        rows.push([parts[0].trim(), parts.slice(1).join("-").trim()]);
+    const trimmed = cleanStr(l);
+    if ((trimmed.includes(":") || trimmed.includes("-")) && !trimmed.startsWith("วิธีทำ") && !trimmed.startsWith("รับทราบ")) {
+      const separatorIdx = trimmed.indexOf(":") !== -1 ? trimmed.indexOf(":") : trimmed.indexOf("-");
+      if (separatorIdx > 0) {
+        const key = cleanStr(trimmed.slice(0, separatorIdx).replace(/^[-*•\d+.]\s*/, ""));
+        const val = cleanStr(trimmed.slice(separatorIdx + 1));
+        if (key && val && key.length < 50) {
+          rows.push([key, val]);
+        }
       }
     }
   });
 
-  const headers = ["รายการ (Item / Description)", "รายละเอียด (Summary / Value)"];
-  return { headers, rows: rows.length > 0 ? rows : [["รายงานบัญชีการเงิน", markdownText.slice(0, 100)]] };
+  const headers = ["รายการบัญชี (Account Item)", "ยอดเงิน / รายละเอียด (Amount / Details)"];
+  return { headers, rows: rows.length > 0 ? rows : [["สรุปบัญชีการเงิน", cleanStr(markdownText.slice(0, 100))]] };
 }
