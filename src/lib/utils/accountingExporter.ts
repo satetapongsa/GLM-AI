@@ -95,7 +95,6 @@ function calculateFinancialSummary(headers: string[], rows: (string | number)[][
   let totalIncome = 0;
   let totalExpense = 0;
 
-  // Search for income / expense column indices
   let amountIdx = -1;
   let typeIdx = -1;
 
@@ -114,7 +113,6 @@ function calculateFinancialSummary(headers: string[], rows: (string | number)[][
     if (amountIdx !== -1 && row[amountIdx] !== undefined) {
       rowVal = typeof row[amountIdx] === "number" ? (row[amountIdx] as number) : Number(row[amountIdx]) || 0;
     } else {
-      // Find first numeric column
       const numCell = row.find((cell) => typeof cell === "number" || (!isNaN(Number(cell)) && String(cell).trim() !== ""));
       if (numCell !== undefined) rowVal = Number(numCell) || 0;
     }
@@ -133,101 +131,6 @@ function calculateFinancialSummary(headers: string[], rows: (string | number)[][
     totalExpense,
     netProfit: totalIncome - totalExpense,
   };
-}
-
-/**
- * Generates and downloads a clean formatted Excel (.xlsx) file
- */
-export function exportToExcel(
-  filename: string,
-  headers: string[],
-  rows: (string | number)[][],
-  summary?: { totalIncome: number; totalExpense: number; netProfit: number }
-) {
-  const wb = XLSX.utils.book_new();
-
-  const exportData: (string | number)[][] = [];
-
-  // Add Title & Header
-  exportData.push(["รายงานสรุปบัญชีและการเงิน (Financial Accounting Report)"]);
-  exportData.push([`วันที่ส่งออก: ${new Date().toLocaleDateString("th-TH")}`]);
-  exportData.push([]); // Empty line
-
-  // Add Headers
-  if (headers.length > 0) {
-    exportData.push(headers);
-  }
-
-  // Add Rows
-  rows.forEach((r) => exportData.push(r));
-
-  // Add Summary lines
-  if (summary) {
-    exportData.push([]);
-    exportData.push(["--- สรุปยอดรวมทางบัญชี ---"]);
-    exportData.push(["รวมรายรับทั้งหมด (Total Income)", summary.totalIncome]);
-    exportData.push(["รวมรายจ่ายทั้งหมด (Total Expense)", summary.totalExpense]);
-    exportData.push(["กำไรสุทธิ (Net Profit)", summary.netProfit]);
-  }
-
-  const ws = XLSX.utils.aoa_to_sheet(exportData);
-  XLSX.utils.book_append_sheet(wb, ws, "Accounting Summary");
-
-  const saveFileName = filename.toLowerCase().endsWith(".xlsx") ? filename : `${filename}.xlsx`;
-  XLSX.writeFile(wb, saveFileName);
-}
-
-/**
- * Generates and downloads a PDF Financial Report using jsPDF & autoTable
- */
-export function exportToPDF(
-  reportTitle: string,
-  headers: string[],
-  rows: (string | number)[][],
-  summaryText?: string,
-  filename: string = "Financial_Report.pdf"
-) {
-  const doc = new jsPDF();
-
-  // Header Title
-  doc.setFontSize(18);
-  doc.text(reportTitle || "Financial & Accounting Report", 14, 20);
-
-  doc.setFontSize(10);
-  doc.text(`Generated: ${new Date().toLocaleDateString("th-TH")} | Goomairu AI Accounting`, 14, 28);
-  doc.line(14, 32, 196, 32);
-
-  // Table
-  if (headers.length > 0 && rows.length > 0) {
-    const formattedRows = rows.map((r) => r.map((c) => String(c ?? "")));
-
-    autoTable(doc, {
-      startY: 38,
-      head: [headers],
-      body: formattedRows,
-      theme: "grid",
-      headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
-      styles: { fontSize: 9, cellPadding: 3 },
-    });
-  }
-
-  // Add summary text at bottom
-  if (summaryText) {
-    // @ts-ignore
-    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 45;
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Executive Financial Summary:", 14, finalY);
-
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-
-    const splitText = doc.splitTextToSize(summaryText, 180);
-    doc.text(splitText, 14, finalY + 7);
-  }
-
-  const saveFileName = filename.toLowerCase().endsWith(".pdf") ? filename : `${filename}.pdf`;
-  doc.save(saveFileName);
 }
 
 /**
@@ -265,7 +168,7 @@ export function extractTableFromMarkdown(markdownText: string): { headers: strin
       if (separatorIdx > 0) {
         const key = cleanStr(trimmed.slice(0, separatorIdx).replace(/^[-*•\d+.]\s*/, ""));
         const val = cleanStr(trimmed.slice(separatorIdx + 1));
-        if (key && val && key.length < 50) {
+        if (key && val && key.length < 60) {
           rows.push([key, val]);
         }
       }
@@ -274,4 +177,152 @@ export function extractTableFromMarkdown(markdownText: string): { headers: strin
 
   const headers = ["รายการบัญชี (Account Item)", "ยอดเงิน / รายละเอียด (Amount / Details)"];
   return { headers, rows: rows.length > 0 ? rows : [["สรุปบัญชีการเงิน", cleanStr(markdownText.slice(0, 100))]] };
+}
+
+/**
+ * Generates and downloads a formatted Excel (.xlsx) file
+ */
+export function exportToExcel(
+  filename: string,
+  headers: string[],
+  rows: (string | number)[][],
+  summary?: { totalIncome: number; totalExpense: number; netProfit: number }
+) {
+  const wb = XLSX.utils.book_new();
+
+  const exportData: (string | number)[][] = [];
+
+  exportData.push(["รายงานสรุปบัญชีและการเงิน (Financial Accounting Report)"]);
+  exportData.push([`วันที่ส่งออก: ${new Date().toLocaleDateString("th-TH")}`]);
+  exportData.push([]); // Empty line
+
+  if (headers.length > 0) {
+    exportData.push(headers);
+  }
+
+  rows.forEach((r) => exportData.push(r));
+
+  if (summary) {
+    exportData.push([]);
+    exportData.push(["--- สรุปยอดรวมทางบัญชี ---"]);
+    exportData.push(["รวมรายรับทั้งหมด (Total Income)", summary.totalIncome]);
+    exportData.push(["รวมรายจ่ายทั้งหมด (Total Expense)", summary.totalExpense]);
+    exportData.push(["กำไรสุทธิ (Net Profit)", summary.netProfit]);
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(exportData);
+  XLSX.utils.book_append_sheet(wb, ws, "Accounting Summary");
+
+  const saveFileName = filename.toLowerCase().endsWith(".xlsx") ? filename : `${filename}.xlsx`;
+  XLSX.writeFile(wb, saveFileName);
+}
+
+/**
+ * Export complete AI message content to publication-grade PDF document
+ */
+export function exportMessageToPDF(messageContent: string, filename: string = "Financial_Accounting_Report.pdf") {
+  const cleanStr = (s: string) => s.replace(/\*\*/g, "").replace(/`/g, "").trim();
+  const doc = new jsPDF();
+
+  // Document Header
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("FINANCIAL & ACCOUNTING AI REPORT", 14, 18);
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Date: ${new Date().toLocaleDateString("th-TH")} ${new Date().toLocaleTimeString("th-TH")} | Goomairu AI Specialist`, 14, 25);
+  doc.setLineWidth(0.5);
+  doc.line(14, 28, 196, 28);
+
+  // Extract structured data tables
+  const { headers, rows } = extractTableFromMarkdown(messageContent);
+
+  let currentY = 35;
+
+  if (headers.length > 0 && rows.length > 0) {
+    const formattedRows = rows.map((r) => r.map((c) => String(c ?? "")));
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [headers],
+      body: formattedRows,
+      theme: "grid",
+      headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
+      styles: { fontSize: 9, cellPadding: 3 },
+    });
+
+    // @ts-ignore
+    currentY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : currentY + 30;
+  }
+
+  // Section Header: Full AI Analysis & Summary
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Detailed Accounting Analysis & Summary:", 14, currentY);
+  currentY += 6;
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+
+  // Clean raw AI response text
+  const cleanContent = cleanStr(messageContent);
+  const textLines = doc.splitTextToSize(cleanContent, 180);
+
+  const pageHeight = doc.internal.pageSize.height;
+  for (let i = 0; i < textLines.length; i++) {
+    if (currentY > pageHeight - 15) {
+      doc.addPage();
+      currentY = 20;
+    }
+    doc.text(textLines[i], 14, currentY);
+    currentY += 5;
+  }
+
+  const saveFileName = filename.toLowerCase().endsWith(".pdf") ? filename : `${filename}.pdf`;
+  doc.save(saveFileName);
+}
+
+/**
+ * Export complete AI message content to Excel (.xlsx) workbook
+ */
+export function exportMessageToExcel(messageContent: string, filename: string = "Financial_Accounting_Report") {
+  const cleanStr = (s: string) => s.replace(/\*\*/g, "").replace(/`/g, "").trim();
+  const wb = XLSX.utils.book_new();
+
+  const exportData: (string | number)[][] = [];
+
+  // Header Title
+  exportData.push(["รายงานสรุปการเงินและบัญชี (Financial Accounting Report - Goomairu AI)"]);
+  exportData.push([`วันที่ส่งออก: ${new Date().toLocaleDateString("th-TH")} ${new Date().toLocaleTimeString("th-TH")}`]);
+  exportData.push([]); // Empty line
+
+  // Extract structured table
+  const { headers, rows } = extractTableFromMarkdown(messageContent);
+  if (headers.length > 0 && rows.length > 0) {
+    exportData.push(headers);
+    rows.forEach((r) => exportData.push(r));
+    exportData.push([]);
+  }
+
+  // Add Full Text Response Paragraphs
+  exportData.push(["--- รายละเอียดบทวิเคราะห์บัญชีเต็มรูปแบบ ---"]);
+  const lines = messageContent.split("\n").map(cleanStr).filter((l) => l.length > 0);
+  lines.forEach((l) => exportData.push([l]));
+
+  const ws = XLSX.utils.aoa_to_sheet(exportData);
+  XLSX.utils.book_append_sheet(wb, ws, "Financial Report");
+
+  const saveFileName = filename.toLowerCase().endsWith(".xlsx") ? filename : `${filename}.xlsx`;
+  XLSX.writeFile(wb, saveFileName);
+}
+
+export function exportToPDF(
+  reportTitle: string,
+  headers: string[],
+  rows: (string | number)[][],
+  summaryText?: string,
+  filename: string = "Financial_Report.pdf"
+) {
+  exportMessageToPDF(summaryText || reportTitle, filename);
 }

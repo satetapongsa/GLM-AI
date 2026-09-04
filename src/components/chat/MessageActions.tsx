@@ -40,21 +40,13 @@ export function MessageActions({ message }: MessageActionsProps) {
   };
 
   const handleExportPDF = () => {
-    const { exportToPDF, extractTableFromMarkdown } = require("@/lib/utils/accountingExporter");
-    const { headers, rows } = extractTableFromMarkdown(message.content);
-    exportToPDF(
-      "รายงานบัญชีและการเงิน (Financial Accounting Report)",
-      headers,
-      rows,
-      message.content.slice(0, 400),
-      `Financial_Report_${Date.now()}.pdf`
-    );
+    const { exportMessageToPDF } = require("@/lib/utils/accountingExporter");
+    exportMessageToPDF(message.content, `Financial_Report_${Date.now()}.pdf`);
   };
 
   const handleExportExcel = () => {
-    const { exportToExcel, extractTableFromMarkdown } = require("@/lib/utils/accountingExporter");
-    const { headers, rows } = extractTableFromMarkdown(message.content);
-    exportToExcel(`Financial_Report_${Date.now()}`, headers, rows);
+    const { exportMessageToExcel } = require("@/lib/utils/accountingExporter");
+    exportMessageToExcel(message.content, `Financial_Report_${Date.now()}.xlsx`);
   };
 
   const activeConv = useChatStore((s) => s.conversations.find((c) => c.id === s.activeConversationId));
