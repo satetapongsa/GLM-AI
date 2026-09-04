@@ -229,3 +229,43 @@ export function exportToPDF(
   const saveFileName = filename.toLowerCase().endsWith(".pdf") ? filename : `${filename}.pdf`;
   doc.save(saveFileName);
 }
+
+/**
+ * Helper to extract table headers and rows from Markdown AI response
+ */
+export function extractTableFromMarkdown(markdownText: string): { headers: string[]; rows: (string | number)[][] } {
+  const lines = markdownText.split("\n");
+  const tableLines: string[] = [];
+
+  for (const line of lines) {
+    if (line.includes("|") && line.trim().startsWith("|")) {
+      tableLines.push(line);
+    }
+  }
+
+  if (tableLines.length >= 2) {
+    const parseRow = (l: string) => l.split("|").slice(1, -1).map((c) => c.trim());
+    const headers = parseRow(tableLines[0]);
+
+    // Filter out separator row (e.g. |---|---|)
+    const dataRowLines = tableLines.slice(1).filter((l) => !l.includes("---"));
+    const rows = dataRowLines.map(parseRow);
+
+    return { headers, rows };
+  }
+
+  // Fallback: extract list items or key-value pairs
+  const rows: (string | number)[][] = [];
+  lines.forEach((l) => {
+    const trimmed = l.trim();
+    if (trimmed.includes(":") || trimmed.includes("-") || trimmed.match(/^\d+\./)) {
+      const parts = trimmed.replace(/^[\d+.\-*•]\s*/, "").split(/[:\-]/);
+      if (parts.length >= 2) {
+        rows.push([parts[0].trim(), parts.slice(1).join("-").trim()]);
+      }
+    }
+  });
+
+  const headers = ["รายการ (Item / Description)", "รายละเอียด (Summary / Value)"];
+  return { headers, rows: rows.length > 0 ? rows : [["รายงานบัญชีการเงิน", markdownText.slice(0, 100)]] };
+}

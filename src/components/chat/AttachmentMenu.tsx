@@ -36,6 +36,7 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
 
       let textContent: string | undefined = undefined;
       const isImage = type === "image" || file.type.startsWith("image/");
+      const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
       const isTextOrCode =
         file.type.startsWith("text/") ||
         file.name.endsWith(".txt") ||
@@ -51,7 +52,16 @@ export function AttachmentMenu({ isOpen, onClose }: AttachmentMenuProps) {
         file.name.endsWith(".sql") ||
         file.name.endsWith(".csv");
 
-      if (isTextOrCode && file.size < 500000) {
+      if (isExcel) {
+        try {
+          const { parseFinancialFile } = await import("@/lib/utils/accountingExporter");
+          const parsed = await parseFinancialFile(file);
+          textContent = `[ไฟล์บัญชี Excel: ${parsed.fileName}]\nหัวข้อตาราง: ${parsed.tableHeaders.join(" | ")}\nข้อมูลรายการ:\n` +
+            parsed.tableRows.slice(0, 100).map((r) => r.join(" | ")).join("\n");
+        } catch {
+          // ignore
+        }
+      } else if (isTextOrCode && file.size < 500000) {
         try {
           textContent = await file.text();
         } catch {

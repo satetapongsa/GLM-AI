@@ -61,7 +61,13 @@ export function SkillsView() {
       return;
     }
     if (skill.id === "skill-accounting") {
-      setIsAccountingModalOpen(true);
+      createNewConversation("📊 ผู้ช่วยบัญชีและทำรายงานการเงิน", "gemini-3.1-flash-lite");
+      setActiveTab("chat");
+      setTimeout(() => {
+        sendMessage(
+          "สวัสดีครับ ผมคือผู้ช่วยบัญชีมืออาชีพ (Accounting & Financial Specialist)\n\nคุณสามารถแนบไฟล์ Excel (.xlsx, .xls), CSV หรือ TXT บัญชีรายรับ-รายจ่ายเข้ามาในช่องแชท พร้อมพิมพ์สั่งให้คำนวณ สรุปงบกำไรขาดทุน คำนวณภาษี หรือส่งออกเป็นรายงาน PDF / Excel ได้เลยครับ!"
+        );
+      }, 200);
       return;
     }
 
